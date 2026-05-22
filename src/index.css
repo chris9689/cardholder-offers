@@ -1,0 +1,80 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Playfair Display", ui-serif, Georgia, serif;
+
+  /* Colors based on provided reference */
+  --color-surface: #f8f9fa;
+  --color-surface-dim: #d9dadb;
+  --color-surface-bright: #f8f9fa;
+  --color-surface-lowest: #ffffff;
+  --color-surface-low: #f3f4f5;
+  --color-surface-container: #edeeef;
+  --color-surface-high: #e7e8e9;
+  --color-surface-highest: #e1e3e4;
+  
+  --color-on-surface: #191c1d;
+  --color-on-surface-variant: #45464c;
+  
+  --color-primary: #000000;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #151b29;
+  --color-on-primary-container: #7e8395;
+  
+  --color-secondary: #775a19;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #fed488;
+  --color-on-secondary-container: #785a1a;
+  
+  --color-secondary-fixed: #ffdea5;
+  --color-on-secondary-fixed: #261900;
+
+  --color-outline: #76777d;
+  --color-outline-variant: #c6c6cc;
+
+  /* Spacing and constants */
+  --spacing-gutter: 24px;
+  --spacing-max-width: 1280px;
+  --spacing-section-padding: 80px;
+  --spacing-margin-desktop: 64px;
+  --spacing-margin-mobile: 20px;
+
+  --radius-xl: 1.5rem;
+  --radius-lg: 1rem;
+}
+
+@layer base {
+  body {
+    @apply bg-surface text-on-surface font-sans antialiased;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    /* Updated to cleaner, bolder Sans as requested */
+    @apply font-sans font-extrabold tracking-tight not-italic;
+  }
+}
+
+@layer components {
+  .max-w-max-width {
+    max-width: var(--spacing-max-width);
+  }
+  
+  .px-margin-desktop {
+    padding-left: var(--spacing-margin-desktop);
+    padding-right: var(--spacing-margin-desktop);
+  }
+
+  .py-section-padding {
+    padding-top: var(--spacing-section-padding);
+    padding-bottom: var(--spacing-section-padding);
+  }
+
+  .nav-link {
+    @apply font-sans text-xs font-bold uppercase tracking-widest transition-all duration-300 pb-1 border-b-2;
+  }
+}
+
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
