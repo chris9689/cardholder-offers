@@ -29,6 +29,37 @@ interface HeroBannerPayload {
   link?: string;
 }
 
+export interface DyProductData {
+  group_id?: string;
+  categories?: string[];
+  in_stock?: boolean;
+  name: string;
+  url?: string;
+  image_url?: string;
+  logo_url?: string;
+  brand?: string;
+  card_tier?: string;
+  country_code?: string;
+  locale?: string;
+  language_code?: string;
+  offer_country?: string;
+  price?: number;
+  [key: string]: unknown;
+}
+
+export interface DyRecommendationSlot {
+  sku: string;
+  productData: DyProductData;
+  slotId?: string;
+}
+
+export interface HomepageChoiceResult {
+  heroBanner: HeroBannerPayload | null;
+  recommendations: DyRecommendationSlot[];
+  recsTitle: string;
+  recsSubtitle: string;
+}
+
 const STORAGE_KEYS = {
   dyid: ['_dyid', 'dyid'],
   dyidServer: ['_dyid_server', 'dyid_server'],
@@ -76,16 +107,18 @@ function readIdentity(): DyIdentity {
   const dyidServer = getLocalValue(STORAGE_KEYS.dyidServer) || getCookie('_dyid_server') || dyid;
   const dySession = getLocalValue(STORAGE_KEYS.session) || getCookie('_dyjsession');
 
-  return {
-    user: {
-      dyid,
-      dyid_server: dyidServer,
-      active_consent_accepted: true,
-    },
-    session: {
-      dy: dySession,
-    },
-  };
+  const user: DyIdentity['user'] = { active_consent_accepted: true };
+  if (dyid) {
+    user.dyid = dyid;
+    user.dyid_server = dyidServer;
+  }
+
+  const session: DyIdentity['session'] = {};
+  if (dySession) {
+    session.dy = dySession;
+  }
+
+  return { user, session };
 }
 
 function applyReturnedCookies(cookies: DyCookieRecord[] | undefined): void {
@@ -179,7 +212,7 @@ export async function chooseHeroBanner(pathname: string, cardType: CardType): Pr
       groups: ['Homepage'],
     },
     options: {
-      isImplicitPageview: false,
+      isImplicitPageview: true,
       returnAnalyticsMetadata: false,
       isImplicitImpressionMode: true,
       isImplicitClientData: false,
@@ -208,6 +241,64 @@ export async function chooseHeroBanner(pathname: string, cardType: CardType): Pr
   }
 
   return payloadData as HeroBannerPayload;
+}
+
+export async function chooseHomepageGroup(pathname: string, cardType: CardType): Promise<HomepageChoiceResult> {
+  const payload = {
+    ...buildBasePayload(pathname, cardType),
+    selector: {
+      names: ['Hero Banner Campaign'],
+      groups: ['Homepage'],
+    },
+    options: {
+      isImplicitPageview: true,
+      returnAnalyticsMetadata: false,
+      isImplicitImpressionMode: true,
+      isImplicitClientData: false,
+    },
+  };
+
+  const empty: HomepageChoiceResult = {
+    heroBanner: null,
+    recommendations: [],
+    recsTitle: 'Recommended Offers',
+    recsSubtitle: 'Personalized Picks',
+  };
+
+  const response = await fetch('/api/dy/choose', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(payload),
+    credentials: 'same-origin',
+  });
+
+  if (!response.ok) {
+    return empty;
+  }
+
+  const body = await response.json();
+  applyReturnedCookies(body?.cookies);
+
+  let heroBanner: HeroBannerPayload | null = null;
+  let recommendations: DyRecommendationSlot[] = [];
+  let recsTitle = empty.recsTitle;
+  let recsSubtitle = empty.recsSubtitle;
+
+  for (const choice of body?.choices ?? []) {
+    const variation = choice?.variations?.[0];
+    if (!variation) continue;
+
+    if (choice.type === 'DECISION' && variation.payload?.data) {
+      heroBanner = variation.payload.data as HeroBannerPayload;
+    } else if (choice.type === 'RECS_DECISION' && variation.payload?.data) {
+      const data = variation.payload.data as { custom?: { title?: string; subtitle?: string }; slots?: DyRecommendationSlot[] };
+      recommendations = data.slots ?? [];
+      recsTitle = data.custom?.title ?? recsTitle;
+      recsSubtitle = data.custom?.subtitle ?? recsSubtitle;
+    }
+  }
+
+  return { heroBanner, recommendations, recsTitle, recsSubtitle };
 }
 
 export type { HeroBannerPayload };

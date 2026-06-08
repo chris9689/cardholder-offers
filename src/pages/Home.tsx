@@ -4,16 +4,18 @@
  */
 
 import { ArrowRight, ChevronLeft, ChevronRight, Diamond, Wallet, ShieldCheck, Sparkles, Star } from 'lucide-react';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import Hero from '../components/Hero';
 import SearchFilters from '../components/SearchFilters';
 import OfferCard from '../components/OfferCard';
+import DyOfferCard from '../components/DyOfferCard';
 import CategoryCard from '../components/CategoryCard';
 import { OFFERS, NEAR_ME_OFFERS, CATEGORIES, getOfferRouteToken } from '../data/offers';
 import { useCard } from '../contexts/CardContext';
 import { USER } from '../config';
+import { chooseHomepageGroup, HomepageChoiceResult } from '../lib/dyServerApi';
 
 const SUGGESTED_PROMPTS = [
   { label: 'Hotel upgrades & custom stays', text: 'Hotel upgrades and VIP luxury stays' },
@@ -23,6 +25,34 @@ const SUGGESTED_PROMPTS = [
 
 export default function Home() {
   const { cardType, points } = useCard();
+  const { pathname } = useLocation();
+  const [homepageData, setHomepageData] = useState<HomepageChoiceResult | null>(null);
+  const [recsPage, setRecsPage] = useState(0);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const load = async () => {
+      const result = await chooseHomepageGroup(pathname, cardType);
+      if (isMounted) {
+        setHomepageData(result);
+        setRecsPage(0);
+      }
+    };
+
+    void load();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [pathname, cardType]);
+
+  const PAGE_SIZE = 9;
+  const slots = homepageData?.recommendations ?? [];
+  const totalPages = Math.max(1, Math.ceil(slots.length / PAGE_SIZE));
+  const visibleSlots = slots.slice(recsPage * PAGE_SIZE, (recsPage + 1) * PAGE_SIZE);
+  const recsTitle = homepageData?.recsTitle ?? 'Your Exclusive Offers';
+  const recsSubtitle = homepageData?.recsSubtitle ?? 'Personalized Picks';
 
   return (
     <div className="flex flex-col w-full pt-16">
@@ -46,7 +76,7 @@ export default function Home() {
         </div>
       </section>
 
-      <Hero />
+      <Hero banner={homepageData?.heroBanner} />
       
       <div className="px-margin-mobile md:px-margin-desktop mb-20 pt-24 max-w-5xl mx-auto w-full">
         <SearchFilters />
@@ -70,20 +100,64 @@ export default function Home() {
       <section className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop mb-24">
         <div className="flex justify-between items-end mb-8">
           <div>
-            <span className="font-sans text-xs font-bold text-secondary uppercase tracking-[0.3em] mb-3 block">Personalized Picks</span>
-            <h2 className="text-3xl md:text-4xl text-primary">Your Exclusive Offers</h2>
+            <span className="font-sans text-xs font-bold text-secondary uppercase tracking-[0.3em] mb-3 block">{recsSubtitle}</span>
+            <h2 className="text-3xl md:text-4xl text-primary">{recsTitle}</h2>
           </div>
-          <div className="hidden md:flex gap-3">
-            <button className="w-12 h-12 rounded-full border border-outline-variant flex items-center justify-center text-on-surface-variant hover:bg-white hover:shadow-lg transition-all"><ChevronLeft size={20} /></button>
-            <button className="w-12 h-12 rounded-full border border-outline-variant flex items-center justify-center text-on-surface-variant hover:bg-white hover:shadow-lg transition-all"><ChevronRight size={20} /></button>
-          </div>
+          {totalPages > 1 && (
+            <div className="hidden md:flex gap-3 items-center">
+              <button
+                onClick={() => setRecsPage((p) => Math.max(0, p - 1))}
+                disabled={recsPage === 0}
+                className="w-12 h-12 rounded-full border border-outline-variant flex items-center justify-center text-on-surface-variant hover:bg-white hover:shadow-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                <ChevronLeft size={20} />
+              </button>
+              <span className="font-sans text-[10px] font-black text-on-surface-variant uppercase tracking-widest">
+                {recsPage + 1} / {totalPages}
+              </span>
+              <button
+                onClick={() => setRecsPage((p) => Math.min(totalPages - 1, p + 1))}
+                disabled={recsPage === totalPages - 1}
+                className="w-12 h-12 rounded-full border border-outline-variant flex items-center justify-center text-on-surface-variant hover:bg-white hover:shadow-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                <ChevronRight size={20} />
+              </button>
+            </div>
+          )}
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {OFFERS.map(offer => (
-            <OfferCard key={offer.id} offer={offer} />
-          ))}
+          {visibleSlots.length > 0
+            ? visibleSlots.map((slot) => (
+                <DyOfferCard key={slot.sku} slot={slot} />
+              ))
+            : OFFERS.map((offer) => (
+                <OfferCard key={offer.id} offer={offer} />
+              ))}
         </div>
+
+        {/* Mobile pagination */}
+        {totalPages > 1 && (
+          <div className="flex md:hidden justify-center gap-4 mt-8">
+            <button
+              onClick={() => setRecsPage((p) => Math.max(0, p - 1))}
+              disabled={recsPage === 0}
+              className="w-12 h-12 rounded-full border border-outline-variant flex items-center justify-center text-on-surface-variant disabled:opacity-30"
+            >
+              <ChevronLeft size={20} />
+            </button>
+            <span className="flex items-center font-sans text-[10px] font-black text-on-surface-variant uppercase tracking-widest">
+              {recsPage + 1} / {totalPages}
+            </span>
+            <button
+              onClick={() => setRecsPage((p) => Math.min(totalPages - 1, p + 1))}
+              disabled={recsPage === totalPages - 1}
+              className="w-12 h-12 rounded-full border border-outline-variant flex items-center justify-center text-on-surface-variant disabled:opacity-30"
+            >
+              <ChevronRight size={20} />
+            </button>
+          </div>
+        )}
       </section>
 
       {/* Curated Categories - Moved above Near You */}

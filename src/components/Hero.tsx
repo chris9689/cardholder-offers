@@ -10,6 +10,10 @@ import { Link, useLocation } from 'react-router-dom';
 import { useCard } from '../contexts/CardContext';
 import { chooseHeroBanner, HeroBannerPayload } from '../lib/dyServerApi';
 
+interface HeroProps {
+  banner?: HeroBannerPayload | null;
+}
+
 const FALLBACK_BANNER: HeroBannerPayload = {
   image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=1600',
   label: 'Summer Curations',
@@ -31,18 +35,21 @@ function resolveLink(link: string | undefined): string {
   return link.startsWith('/') ? link : `/${link}`;
 }
 
-export default function Hero() {
+export default function Hero({ banner: bannerProp }: HeroProps) {
   const { pathname } = useLocation();
   const { cardType } = useCard();
-  const [banner, setBanner] = useState<HeroBannerPayload | null>(null);
+  const [fetchedBanner, setFetchedBanner] = useState<HeroBannerPayload | null>(null);
 
   useEffect(() => {
+    // Skip self-fetch when parent already provides the banner
+    if (bannerProp !== undefined) return;
+
     let isMounted = true;
 
     const loadBanner = async () => {
       const payload = await chooseHeroBanner(pathname, cardType);
       if (isMounted) {
-        setBanner(payload);
+        setFetchedBanner(payload);
       }
     };
 
@@ -51,7 +58,9 @@ export default function Hero() {
     return () => {
       isMounted = false;
     };
-  }, [pathname, cardType]);
+  }, [pathname, cardType, bannerProp]);
+
+  const banner = bannerProp !== undefined ? bannerProp : fetchedBanner;
 
   const activeBanner = useMemo(() => ({ ...FALLBACK_BANNER, ...(banner || {}) }), [banner]);
   const heroLink = resolveLink(activeBanner.link);
