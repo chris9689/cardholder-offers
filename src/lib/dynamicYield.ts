@@ -58,6 +58,37 @@ export function getDyRecommendationContext(pathname: string): DyRecommendationCo
   return { type: 'OTHER', data: [] };
 }
 
+export function getPageId(pathname: string): string {
+  const path = normalizePath(pathname);
+
+  if (path === '/') {
+    return 'home';
+  }
+
+  if (path.startsWith('/offers/')) {
+    const sku = decodeURIComponent(path.replace('/offers/', '').trim());
+    return sku || 'offer-detail';
+  }
+
+  if (path === '/offers') {
+    return 'offers';
+  }
+
+  if (path === '/search') {
+    return 'search';
+  }
+
+  if (path === '/curated') {
+    return 'curated';
+  }
+
+  if (path === '/account') {
+    return 'account';
+  }
+
+  return path.replace(/^\//, '').replace(/\//g, '-') || 'other';
+}
+
 export function setDyRecommendationContext(pathname: string): void {
   if (typeof window === 'undefined') {
     return;

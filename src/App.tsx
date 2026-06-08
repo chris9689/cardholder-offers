@@ -4,7 +4,7 @@
  */
 
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -14,8 +14,9 @@ import Account from './pages/Account';
 import SearchPage from './pages/Search';
 import CuratedResults from './pages/CuratedResults';
 import AgentDrawer from './components/AgentDrawer';
-import { CardProvider } from './contexts/CardContext';
+import { CardProvider, useCard } from './contexts/CardContext';
 import { setDyRecommendationContext } from './lib/dynamicYield';
+import { trackPageview } from './lib/dyServerApi';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -33,6 +34,24 @@ function DynamicYieldPageContext() {
   useEffect(() => {
     setDyRecommendationContext(pathname);
   }, [pathname]);
+
+  return null;
+}
+
+function DynamicYieldServerTracking() {
+  const { pathname } = useLocation();
+  const { cardType } = useCard();
+  const lastTrackedKey = useRef('');
+
+  useEffect(() => {
+    const key = `${pathname}|${cardType}`;
+    if (lastTrackedKey.current === key) {
+      return;
+    }
+
+    lastTrackedKey.current = key;
+    void trackPageview(pathname, cardType);
+  }, [pathname, cardType]);
 
   return null;
 }
@@ -56,6 +75,7 @@ export default function App() {
       <Router>
         <ScrollToTop />
         <DynamicYieldPageContext />
+        <DynamicYieldServerTracking />
         <MainLayout>
           <Routes>
             <Route path="/" element={<Home />} />

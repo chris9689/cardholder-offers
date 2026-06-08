@@ -13,6 +13,17 @@ Prerequisites: Node.js
 3. Open the app in your browser:
    `http://localhost:3000`
 
+## Dynamic Yield Server API
+
+Server-side Dynamic Yield calls are proxied through Vercel functions:
+
+- `api/dy/pageview.js` -> `https://dy-api.com/v2/collect/user/pageview`
+- `api/dy/choose.js` -> `https://dy-api.com/v2/serve/user/choose`
+
+Set this environment variable in Vercel project settings:
+
+- `DY_API_KEY` = your Dynamic Yield API key
+
 ## Scripts
 
 - `npm run dev` - start local development server
