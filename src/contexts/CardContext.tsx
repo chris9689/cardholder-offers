@@ -4,6 +4,7 @@
  */
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { USER } from '../config';
 
 export type CardType = 'Standard' | 'Premium' | 'Black';
 
@@ -19,9 +20,9 @@ interface CardContextType {
 const CardContext = createContext<CardContextType | undefined>(undefined);
 
 export function CardProvider({ children }: { children: ReactNode }) {
-  const [cardType, setCardType] = useState<CardType>('Black');
+  const [cardType, setCardType] = useState<CardType>(USER.defaultCardType);
   const [isAgentOpen, setIsAgentOpen] = useState(false);
-  const [points, setPoints] = useState(125400);
+  const [points, setPoints] = useState(USER.initialPoints);
 
   return (
     <CardContext.Provider value={{ cardType, setCardType, isAgentOpen, setIsAgentOpen, points, setPoints }}>

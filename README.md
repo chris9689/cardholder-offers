@@ -1,20 +1,21 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# Cardholder Offers
 
-# Run and deploy your AI Studio app
+This is a Vite + React + TypeScript application.
 
-This contains everything you need to run your app locally.
+## Run locally
 
-View your app in AI Studio: https://ai.studio/apps/066ba7c9-a79e-46b6-a7e1-58d6399b9140
-
-## Run Locally
-
-**Prerequisites:**  Node.js
-
+Prerequisites: Node.js
 
 1. Install dependencies:
    `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
+2. Start the dev server:
    `npm run dev`
+3. Open the app in your browser:
+   `http://localhost:3000`
+
+## Scripts
+
+- `npm run dev` - start local development server
+- `npm run build` - build production assets
+- `npm run preview` - preview the production build
+- `npm run lint` - run TypeScript type-checking

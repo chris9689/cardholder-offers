@@ -8,6 +8,7 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { useCard, CardType } from '../contexts/CardContext';
+import { BRAND } from '../config';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -30,12 +31,12 @@ export default function Navbar() {
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2.5 group">
           <img 
-            alt="Mastercard Logo" 
+            alt={BRAND.logoAlt}
             className="h-7 w-auto transition-transform group-hover:scale-105 duration-300" 
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuCmuskyyhrHeFWM3b12DTZNny1RwsOiUZI-7b6HpTHUfqogyUJl-wjj_KPhEnEUiBcvOGYVLiSpOW5z7SIwz4p47URs1z85CcDuIBXBXSO7gU2xSzFOWRx1_w3f0UR9ghQH_-Wb2Ocw0GGk0GLeQDyy0SkUkGyzTTqxpnloUjFv3hwAs-4YWOpEnvp9e1lYNOV3khBvWWis94S6QCN3vo73qM0XhDk-6uPhI7n_Ck_O2W8SKQ8W-4OOrBN2B5Wac77aQ5dTCBBxYJ0" 
+            src={BRAND.logoUrl}
           />
           <span className="font-sans font-black text-xs md:text-sm uppercase tracking-wider text-primary group-hover:text-secondary transition-colors duration-300">
-            Spending Offers
+            {BRAND.name}
           </span>
         </Link>
 

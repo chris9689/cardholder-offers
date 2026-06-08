@@ -7,13 +7,15 @@ import React from 'react';
 import { Heart, ExternalLink, CheckCircle } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
-import { Offer } from '../data/offers';
+import { Offer, getOfferRouteToken } from '../data/offers';
 
 interface OfferCardProps {
   offer: Offer;
 }
 
 const OfferCard: React.FC<OfferCardProps> = ({ offer }) => {
+  const routeToken = getOfferRouteToken(offer);
+
   return (
     <motion.div 
       whileHover={{ y: -8 }}
@@ -64,13 +66,13 @@ const OfferCard: React.FC<OfferCardProps> = ({ offer }) => {
             </div>
           ) : (
             <Link 
-              to={`/offers/${offer.id}`} 
+              to={`/offers/${routeToken}`} 
               className="text-secondary font-sans text-sm font-bold hover:underline underline-offset-4 decoration-2"
             >
               Activate Offer
             </Link>
           )}
-          <Link to={`/offers/${offer.id}`} className="text-on-surface-variant hover:text-primary transition-colors">
+          <Link to={`/offers/${routeToken}`} className="text-on-surface-variant hover:text-primary transition-colors">
             <ExternalLink size={18} />
           </Link>
         </div>

@@ -11,9 +11,9 @@ import { motion } from 'motion/react';
 import OfferCard from '../components/OfferCard';
 
 export default function OfferDetail() {
-  const { id } = useParams();
+  const { sku } = useParams();
   const navigate = useNavigate();
-  const offer = OFFERS.find(o => o.id === id) || OFFERS[0];
+  const offer = OFFERS.find(o => o.sku === sku || o.id === sku) || OFFERS[0];
 
   return (
     <div className="pt-24 min-h-screen bg-white">
@@ -35,7 +35,7 @@ export default function OfferDetail() {
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="aspect-[4/5] rounded-[48px] overflow-hidden shadow-2xl sticky top-32"
+            className="aspect-4/5 rounded-[48px] overflow-hidden shadow-2xl sticky top-32"
           >
             <img src={offer.image} className="w-full h-full object-cover" alt={offer.merchant} />
             <div className="absolute top-6 right-6 flex flex-col gap-3">
@@ -90,22 +90,22 @@ export default function OfferDetail() {
               </p>
             </div>
 
-            <div className="bg-surface-container-low p-8 rounded-[32px] border border-outline-variant/10">
+            <div className="bg-surface-container-low p-8 rounded-4xl border border-outline-variant/10">
               <h3 className="font-sans text-xl font-black text-primary mb-6 flex items-center gap-2 uppercase tracking-wide">
                 <ShieldCheck size={24} className="text-green-600" />
                 How to Redeem
               </h3>
               <ul className="flex flex-col gap-4">
                 <li className="flex gap-4 font-sans text-on-surface-variant font-light">
-                   <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center flex-shrink-0 text-xs font-bold">1</div>
+                   <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center shrink-0 text-xs font-bold">1</div>
                    Click "Activate Offer" to register your eligible card.
                 </li>
                 <li className="flex gap-4 font-sans text-on-surface-variant font-light">
-                   <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center flex-shrink-0 text-xs font-bold">2</div>
+                   <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center shrink-0 text-xs font-bold">2</div>
                    Use the activated card at {offer.merchant} (in-store or online).
                 </li>
                 <li className="flex gap-4 font-sans text-on-surface-variant font-light">
-                   <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center flex-shrink-0 text-xs font-bold">3</div>
+                   <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center shrink-0 text-xs font-bold">3</div>
                    Rewards will be credited to your account within 30 days.
                 </li>
               </ul>

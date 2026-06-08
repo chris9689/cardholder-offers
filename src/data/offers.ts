@@ -5,6 +5,7 @@
 
 export interface Offer {
   id: string;
+  sku?: string;
   merchant: string;
   merchantLogo: string;
   title: string;
@@ -22,6 +23,7 @@ export interface Offer {
 export const OFFERS: Offer[] = [
   {
     id: '1',
+    sku: 'CO-ES-MAD-SHO-0007',
     merchant: '7-Eleven',
     merchantLogo: '7E',
     title: 'Get 10% cashback when you spend $20',
@@ -36,6 +38,7 @@ export const OFFERS: Offer[] = [
   },
   {
     id: '2',
+    sku: 'CO-ES-MAD-ENT-0031',
     merchant: 'Disney+',
     merchantLogo: 'D+',
     title: 'Get 10% cashback when you spend $20',
@@ -50,6 +53,7 @@ export const OFFERS: Offer[] = [
   },
   {
     id: '3',
+    sku: 'CO-ES-MAD-SPO-0028',
     merchant: 'Matsumoto KiYoshi',
     merchantLogo: 'MK',
     title: 'Get 10% cashback when you spend $20',
@@ -64,6 +68,7 @@ export const OFFERS: Offer[] = [
   },
   {
     id: '4',
+    sku: 'CO-ES-MAD-TRA-0016',
     merchant: 'Rosewood Hotels',
     merchantLogo: 'RW',
     title: 'Complimentary room upgrade on arrival',
@@ -78,6 +83,7 @@ export const OFFERS: Offer[] = [
   },
   {
     id: 'rw-t-2',
+    sku: 'CO-ES-BCN-TRA-0052',
     merchant: 'Aman Resorts',
     merchantLogo: 'AM',
     title: 'Complimentary third night with wellness package',
@@ -92,6 +98,7 @@ export const OFFERS: Offer[] = [
   },
   {
     id: '5',
+    sku: 'CO-ES-MAD-SHO-0010',
     merchant: 'LVMH Boutique',
     merchantLogo: 'LV',
     title: '$50 Statement Credit on $500 spend',
@@ -106,6 +113,7 @@ export const OFFERS: Offer[] = [
   },
   {
     id: '6',
+    sku: 'CO-ES-MAD-ENT-0032',
     merchant: 'Eventbrite Elite',
     merchantLogo: 'EV',
     title: 'Exclusive early access to gala tickets',
@@ -120,6 +128,7 @@ export const OFFERS: Offer[] = [
   },
   {
     id: '7',
+    sku: 'CO-ES-MAD-CUL-0022',
     merchant: 'Eleven Madison Park',
     merchantLogo: 'EM',
     title: 'Complimentary kitchen-side tasting and pairing',
@@ -134,6 +143,7 @@ export const OFFERS: Offer[] = [
   },
   {
     id: '8',
+    sku: 'CO-ES-BCN-CUL-0058',
     merchant: 'Le Bernardin',
     merchantLogo: 'LB',
     title: 'Priority window table VIP booking',
@@ -151,6 +161,7 @@ export const OFFERS: Offer[] = [
 export const NEAR_ME_OFFERS: Offer[] = [
   {
     id: 'nearby-1',
+    sku: 'CO-ES-VAL-CUL-0094',
     merchant: 'Le Bernardin',
     merchantLogo: 'LB',
     title: '15% Reward at Le Bernardin',
@@ -166,6 +177,7 @@ export const NEAR_ME_OFFERS: Offer[] = [
   },
   {
     id: 'nearby-2',
+    sku: 'CO-ES-VAL-SHO-0079',
     merchant: 'Bergdorf Goodman',
     merchantLogo: 'BG',
     title: '$50 Credit at Bergdorf',
@@ -189,3 +201,7 @@ export const CATEGORIES = [
   { name: 'Experiences', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCAspWNcN5pU2XgihhGGPC3aHzfVwEqcCsWY-PS4cF_HyuNq28tUnbIa3uBVHD4I8Q2pD2o431woO7oW-Ml5ClLvr7MhMu8-31f9IsAUSZ7dSohHPz6xeqG0pLwb_N15oQ8_u3e0NrmZZlmjYVLXiyW0cwRexs0vK0c1EAAwrsfCuRuw8NM7J0s7xX-FhFzuJatoubZAHE1A6_ss_pF_eZvmzCk-ef1LuqjKh37veHriEMEMQ5HD45MPOpBiIaudHIDVpt-5Lewj-Y' },
   { name: 'Events', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDGVD27s3H6K42sfVXcdobWYu0As3kBlUc_bpbbz_Km2KhnZKcYB2LnFiK9l4bvN78ucSEwUHV8QGYyqbCExjRdKvyvyr5fU-_3mXZzFAk-hXytKGu0PQULq2vMHHdYiJFUd-xsq0xupFcnEweb6q42DSuVXI4z7ruE899UiJ74r9iVg8m1dt41b9MUBgN6qUdcnIDjhPFyD7SgA8ajyu9rbcFQ0UYhItLZGz_Bw36lyZ7s8HV18RR3H4xHQ1U9XwroYZdte2bifBc' },
 ];
+
+export function getOfferRouteToken(offer: Offer): string {
+  return offer.sku ?? offer.id;
+}

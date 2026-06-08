@@ -15,12 +15,23 @@ import SearchPage from './pages/Search';
 import CuratedResults from './pages/CuratedResults';
 import AgentDrawer from './components/AgentDrawer';
 import { CardProvider } from './contexts/CardContext';
+import { setDyRecommendationContext } from './lib/dynamicYield';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
 
   useEffect(() => {
     window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+}
+
+function DynamicYieldPageContext() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    setDyRecommendationContext(pathname);
   }, [pathname]);
 
   return null;
@@ -44,11 +55,12 @@ export default function App() {
     <CardProvider>
       <Router>
         <ScrollToTop />
+        <DynamicYieldPageContext />
         <MainLayout>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/offers" element={<Browse />} />
-            <Route path="/offers/:id" element={<OfferDetail />} />
+            <Route path="/offers/:sku" element={<OfferDetail />} />
             <Route path="/account" element={<Account />} />
             <Route path="/search" element={<SearchPage />} />
             <Route path="/curated" element={<CuratedResults />} />

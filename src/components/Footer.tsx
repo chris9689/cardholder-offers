@@ -5,6 +5,7 @@
 
 import { Globe, Mail, Share2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { BRAND } from '../config';
 
 export default function Footer() {
   return (
@@ -12,9 +13,9 @@ export default function Footer() {
       <div className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
         <div className="lg:col-span-1">
           <img 
-            alt="Mastercard Logo" 
+            alt={BRAND.logoAlt}
             className="h-10 w-auto mb-6" 
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuCmuskyyhrHeFWM3b12DTZNny1RwsOiUZI-7b6HpTHUfqogyUJl-wjj_KPhEnEUiBcvOGYVLiSpOW5z7SIwz4p47URs1z85CcDuIBXBXSO7gU2xSzFOWRx1_w3f0UR9ghQH_-Wb2Ocw0GGk0GLeQDyy0SkUkGyzTTqxpnloUjFv3hwAs-4YWOpEnvp9e1lYNOV3khBvWWis94S6QCN3vo73qM0XhDk-6uPhI7n_Ck_O2W8SKQ8W-4OOrBN2B5Wac77aQ5dTCBBxYJ0" 
+            src={BRAND.logoUrl}
           />
           <p className="font-sans text-on-surface-variant max-w-xs mb-8 leading-relaxed">
             Crafting exclusive financial experiences for the world's most discerning travelers and connoisseurs.
@@ -45,7 +46,7 @@ export default function Footer() {
           <Link to="#" className="font-sans text-on-surface-variant hover:text-primary transition-colors">Privacy Policy</Link>
           <Link to="#" className="font-sans text-on-surface-variant hover:text-primary transition-colors">Terms of Service</Link>
           <p className="font-sans text-xs text-on-surface-variant mt-8 opacity-60">
-            © 2024 Premier Rewards Elite. <br /> All rights reserved.
+            {BRAND.footerCopy}
           </p>
         </div>
       </div>

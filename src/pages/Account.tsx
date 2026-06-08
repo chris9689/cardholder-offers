@@ -8,6 +8,7 @@ import React from 'react';
 import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { useCard } from '../contexts/CardContext';
+import { USER } from '../config';
 
 export default function Account() {
   const { cardType } = useCard();
@@ -29,7 +30,7 @@ export default function Account() {
                 <span className="font-sans text-[10px] font-black text-secondary uppercase tracking-[0.4em]">Membership Dashboard</span>
                 <div className="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse" />
               </div>
-              <h1 className="text-4xl md:text-6xl text-primary font-black mb-6">Julian Anderson</h1>
+              <h1 className="text-4xl md:text-6xl text-primary font-black mb-6">{USER.name}</h1>
               <div className="flex flex-wrap gap-3">
                 <div className="bg-primary px-5 py-2.5 rounded-xl flex items-center gap-2.5 shadow-lg shadow-primary/10">
                   <Award size={16} className="text-secondary" />

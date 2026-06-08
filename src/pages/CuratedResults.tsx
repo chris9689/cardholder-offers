@@ -176,7 +176,7 @@ export default function CuratedResults() {
 
       {/* Main Teaser Banner */}
       <section className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop mb-12">
-        <div className="relative overflow-hidden rounded-[32px] md:rounded-[40px] bg-primary p-8 md:p-12 text-white shadow-xl border border-outline-variant/10 min-h-[300px] flex items-center">
+        <div className="relative overflow-hidden rounded-4xl bg-primary p-8 md:p-12 text-white shadow-xl border border-outline-variant/10 min-h-[300px] flex items-center">
           {/* Cover background image */}
           <div className="absolute inset-0">
             <img 
@@ -185,7 +185,7 @@ export default function CuratedResults() {
               className="w-full h-full object-cover opacity-50 mix-blend-overlay"
               referrerPolicy="no-referrer"
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-primary/95 via-primary/70 to-transparent" />
+            <div className="absolute inset-0 bg-linear-to-r from-primary/95 via-primary/70 to-transparent" />
           </div>
           
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8 w-full">
@@ -379,7 +379,7 @@ export default function CuratedResults() {
                         onClick={() => handleRedeem(reward)}
                         className={`w-full sm:w-auto px-5 py-3 rounded-xl font-sans text-[10px] font-black uppercase tracking-widest transition-all ${
                           displayAffordable 
-                            ? 'bg-[#775a19] text-white hover:bg-primary shadow-md hover:translate-y-[-1px]' 
+                            ? 'bg-secondary text-white hover:bg-primary shadow-md hover:-translate-y-px' 
                             : 'bg-surface-container-high text-on-surface-variant/40 cursor-not-allowed border border-outline-variant/10'
                         }`}
                       >

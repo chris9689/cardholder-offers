@@ -59,7 +59,7 @@ export default function SearchPage() {
 
           {/* Search Bar Input */}
           <form onSubmit={handleSearchSubmit} className="mt-8 flex items-center bg-surface-container/50 px-6 py-4 rounded-2xl md:rounded-3xl border border-outline-variant/10 w-full max-w-2xl shadow-sm focus-within:border-primary/20 focus-within:ring-2 focus-within:ring-primary/5 transition-all">
-            <Search className="text-on-surface-variant mr-4 flex-shrink-0" size={20} />
+            <Search className="text-on-surface-variant mr-4 shrink-0" size={20} />
             <input 
               className="bg-transparent border-none focus:ring-0 text-base w-full p-0 font-sans font-bold placeholder:text-on-surface-variant/30 text-primary" 
               placeholder="Search offers, merchants, or categories..." 
@@ -81,7 +81,7 @@ export default function SearchPage() {
       {/* Main Results Container */}
       <section className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop py-12">
         <div className="flex justify-between items-center mb-8 border-b border-outline-variant/10 pb-4">
-          <span className="font-sans text-[10px] font-black uppercase tracking-widest text-[#775a19] bg-[#775a19]/5 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
+          <span className="font-sans text-[10px] font-black uppercase tracking-widest text-secondary bg-secondary/5 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
             <Sparkles size={12} className="text-secondary" />
             {results.length} {results.length === 1 ? 'offer' : 'offers'} found
           </span>
@@ -107,7 +107,7 @@ export default function SearchPage() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-20 bg-white/50 border border-dashed border-outline-variant/30 rounded-[32px] max-w-xl mx-auto px-8">
+          <div className="text-center py-20 bg-white/50 border border-dashed border-outline-variant/30 rounded-4xl max-w-xl mx-auto px-8">
             <div className="w-16 h-16 rounded-full bg-surface-container mx-auto flex items-center justify-center text-on-surface-variant mb-6">
               <Sparkles size={28} className="opacity-45" />
             </div>

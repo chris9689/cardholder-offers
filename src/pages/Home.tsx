@@ -11,13 +11,14 @@ import Hero from '../components/Hero';
 import SearchFilters from '../components/SearchFilters';
 import OfferCard from '../components/OfferCard';
 import CategoryCard from '../components/CategoryCard';
-import { OFFERS, NEAR_ME_OFFERS, CATEGORIES } from '../data/offers';
+import { OFFERS, NEAR_ME_OFFERS, CATEGORIES, getOfferRouteToken } from '../data/offers';
 import { useCard } from '../contexts/CardContext';
+import { USER } from '../config';
 
 const SUGGESTED_PROMPTS = [
   { label: 'Hotel upgrades & custom stays', text: 'Hotel upgrades and VIP luxury stays' },
   { label: 'Michelin & dining rewards', text: 'Michelin star dining perks and nearby rewards' },
-  { label: 'Redeemed with points balance', text: 'Offers redeemable with my points balance of 125,400' }
+  { label: 'Redeemed with points balance', text: `Offers redeemable with my points balance of ${USER.initialPoints.toLocaleString()}` }
 ];
 
 export default function Home() {
@@ -30,7 +31,7 @@ export default function Home() {
         <div className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 md:gap-8">
             <div className="bg-primary text-white px-4 py-1.5 rounded-full flex items-center gap-2">
-              <h2 className="font-sans text-[10px] font-black tracking-[0.2em] uppercase">Welcome, Julian Anderson</h2>
+                <h2 className="font-sans text-[10px] font-black tracking-[0.2em] uppercase">Welcome, {USER.name}</h2>
             </div>
             <div className="hidden md:block w-px h-3 bg-outline-variant/30" />
             <p className="font-sans text-[10px] font-black text-on-surface-variant flex items-center gap-2 uppercase tracking-[0.2em]">
@@ -117,8 +118,8 @@ export default function Home() {
             </p>
             <div className="flex flex-col gap-4">
               {NEAR_ME_OFFERS.slice(0, 2).map(offer => (
-                <Link key={offer.id} to={`/offers/${offer.id}`} className="bg-white p-5 rounded-3xl flex items-center gap-5 border border-outline-variant/10 shadow-sm hover:shadow-xl hover:border-primary/20 transition-all group">
-                  <div className="w-16 h-16 rounded-2xl overflow-hidden flex-shrink-0 shadow-md">
+                <Link key={offer.id} to={`/offers/${getOfferRouteToken(offer)}`} className="bg-white p-5 rounded-3xl flex items-center gap-5 border border-outline-variant/10 shadow-sm hover:shadow-xl hover:border-primary/20 transition-all group">
+                  <div className="w-16 h-16 rounded-2xl overflow-hidden shrink-0 shadow-md">
                     <img src={offer.image} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={offer.merchant} />
                   </div>
                   <div className="flex-1">
@@ -137,7 +138,7 @@ export default function Home() {
               alt="Manhattan Map"
               src="https://lh3.googleusercontent.com/aida-public/AB6AXuAMn82K5MOdulnro8vQvxpvOyWX6s_MelY5PZc5UIsdVVXgtBopLv8lO0y5AeqLpWp07275FBQLoeo2Dg62Vux_1GwC_UvZwIS_cE-KOjx-e0RE-Md8wr0fuDy85xw8dUVLK1HevPXIP5mXz3RAlt6T_NoGjYqsSaB2h2sHHZEFaWYnyFK-_236i5v949rvEVY31Cgq9R6i7i2n7RYuT7lo7foXZSPA9pDzkbsnxHtp4SyuoDl6uTAQBBfV9_9y9VWsVONzg-G_bok" 
             />
-            <div className="absolute inset-0 bg-gradient-to-tr from-surface/40 via-transparent to-transparent flex items-center justify-center">
+            <div className="absolute inset-0 bg-linear-to-tr from-surface/40 via-transparent to-transparent flex items-center justify-center">
               <motion.div 
                 animate={{ y: [0, -12, 0] }}
                 transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
@@ -190,7 +191,7 @@ export default function Home() {
 
         {/* Call to Action */}
         <div className="mt-24 bg-primary-container rounded-[64px] p-10 md:p-20 text-white overflow-hidden relative group">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-secondary/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-[2000ms]" />
+          <div className="absolute top-0 right-0 w-96 h-96 bg-secondary/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-2000" />
           <div className="relative z-10 flex flex-col items-center">
             <h3 className="text-4xl md:text-7xl mb-6 leading-[0.9] font-black uppercase tracking-tighter not-italic">Unrivaled <br /> Experience.</h3>
             <p className="font-sans text-base md:text-lg opacity-60 max-w-xl mb-10 font-medium leading-relaxed">

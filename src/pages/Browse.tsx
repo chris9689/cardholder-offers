@@ -175,7 +175,7 @@ export default function Browse() {
                   placeholder="Search catalog by name, merchant or reward..." 
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-16 pr-6 py-4 rounded-[32px] bg-surface-container-low border-none focus:ring-2 focus:ring-primary/20 text-sm font-sans font-medium placeholder:text-on-surface-variant/30"
+                  className="w-full pl-16 pr-6 py-4 rounded-4xl bg-surface-container-low border-none focus:ring-2 focus:ring-primary/20 text-sm font-sans font-medium placeholder:text-on-surface-variant/30"
                 />
               </div>
               <div className="flex border border-outline-variant/10 rounded-2xl overflow-hidden shadow-sm">

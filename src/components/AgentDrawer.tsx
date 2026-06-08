@@ -8,7 +8,8 @@ import { X, Send, Sparkles, MessageCircle, ArrowUpRight, HelpCircle } from 'luci
 import { motion, AnimatePresence } from 'motion/react';
 import { useCard } from '../contexts/CardContext';
 import { Link } from 'react-router-dom';
-import { OFFERS, NEAR_ME_OFFERS } from '../data/offers';
+import { OFFERS, NEAR_ME_OFFERS, getOfferRouteToken } from '../data/offers';
+import { USER } from '../config';
 
 interface Message {
   id: string;
@@ -28,7 +29,7 @@ export default function AgentDrawer() {
     {
       id: '1',
       sender: 'agent',
-      text: `Welcome, Julian. I am your Mastercard ${cardType} benefit assistant. Whether you are looking for dining perks, travel rewards, or statement credits, let me know what you have in mind and I will find the perfect offers for you.`,
+        text: `Welcome, ${USER.name.split(' ')[0]}. I am your Mastercard ${cardType} benefit assistant. Whether you are looking for dining perks, travel rewards, or statement credits, let me know what you have in mind and I will find the perfect offers for you.`,
       timestamp: 'Just now',
     }
   ]);
@@ -154,7 +155,7 @@ export default function AgentDrawer() {
 
           {/* Quick Stats Panel */}
           <div className="bg-surface-container/30 px-6 py-4 border-b border-outline-variant/10 flex items-center justify-between">
-            <span className="font-sans text-[10px] font-black tracking-widest text-on-surface-variant uppercase">Member Status: Julian Anderson</span>
+              <span className="font-sans text-[10px] font-black tracking-widest text-on-surface-variant uppercase">Member Status: {USER.name}</span>
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-secondary" />
               <span className="font-sans text-[10px] font-black uppercase tracking-widest text-primary">Connected</span>
@@ -197,7 +198,7 @@ export default function AgentDrawer() {
                           <h4 className="font-sans font-black text-xs uppercase tracking-tight text-primary leading-tight mb-1 group-hover:text-secondary transition-colors line-clamp-1">{rec.merchant}</h4>
                           <p className="text-[10px] text-on-surface-variant line-clamp-2 h-8 leading-snug mb-3 opacity-80">{rec.title}</p>
                           <Link 
-                            to={`/offers/${rec.id}`}
+                            to={`/offers/${getOfferRouteToken(rec)}`}
                             onClick={() => setIsAgentOpen(false)}
                             className="w-full bg-surface-container text-primary hover:bg-secondary hover:text-white py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-1"
                           >
@@ -229,7 +230,7 @@ export default function AgentDrawer() {
 
           {/* Preset recommendations */}
           <div className="px-6 py-4 bg-surface-container/10 border-t border-outline-variant/10">
-            <span className="text-[9px] font-black text-on-surface-variant/50 uppercase tracking-widest mb-2.5 block flex items-center gap-1">
+            <span className="text-[9px] font-black text-on-surface-variant/50 uppercase tracking-widest mb-2.5 flex items-center gap-1">
               <HelpCircle size={12} className="text-secondary" /> Suggested Requests:
             </span>
             <div className="flex flex-wrap gap-2">
