@@ -60,6 +60,11 @@ export interface HomepageChoiceResult {
   recsSubtitle: string;
 }
 
+export interface PdpChoiceResult {
+  recommendations: DyRecommendationSlot[];
+  recsTitle: string;
+}
+
 const STORAGE_KEYS = {
   dyid: ['_dyid', 'dyid'],
   dyidServer: ['_dyid_server', 'dyid_server'],
@@ -299,6 +304,65 @@ export async function chooseHomepageGroup(pathname: string, cardType: CardType):
   }
 
   return { heroBanner, recommendations, recsTitle, recsSubtitle };
+}
+
+export async function choosePdpRecommendations(sku: string, cardType: CardType): Promise<PdpChoiceResult> {
+  const base = buildBasePayload(`/offers/${encodeURIComponent(sku)}`, cardType);
+  const payload = {
+    ...base,
+    context: {
+      ...base.context,
+      page: {
+        type: 'PRODUCT',
+        location: window.location.href,
+        data: [sku],
+      },
+    },
+    selector: {
+      names: ['PDP Recommendation'],
+      groups: ['Productpage'],
+    },
+    options: {
+      isImplicitPageview: true,
+      returnAnalyticsMetadata: false,
+      isImplicitImpressionMode: true,
+      isImplicitClientData: false,
+    },
+  };
+
+  const fallback: PdpChoiceResult = {
+    recommendations: [],
+    recsTitle: 'Recommended for You',
+  };
+
+  const response = await fetch('/api/dy/choose', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(payload),
+    credentials: 'same-origin',
+  });
+
+  if (!response.ok) {
+    return fallback;
+  }
+
+  const body = await response.json();
+  applyReturnedCookies(body?.cookies);
+
+  for (const choice of body?.choices ?? []) {
+    const variation = choice?.variations?.[0];
+    if (choice?.type !== 'RECS_DECISION' || !variation?.payload?.data) {
+      continue;
+    }
+
+    const data = variation.payload.data as { custom?: { title?: string }; slots?: DyRecommendationSlot[] };
+    return {
+      recommendations: data.slots ?? [],
+      recsTitle: data.custom?.title ?? fallback.recsTitle,
+    };
+  }
+
+  return fallback;
 }
 
 export type { HeroBannerPayload };
