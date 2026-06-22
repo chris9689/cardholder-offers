@@ -366,3 +366,105 @@ export async function choosePdpRecommendations(sku: string, cardType: CardType):
 }
 
 export type { HeroBannerPayload };
+
+// ─── Experience Search ────────────────────────────────────────────────────────
+
+export interface DySearchFacetValue {
+  name: string;
+  count: number;
+}
+
+export interface DySearchFacet {
+  column: string;
+  displayName: string;
+  valuesType: string;
+  values: DySearchFacetValue[];
+}
+
+export interface DySearchResult {
+  slots: DyRecommendationSlot[];
+  facets: DySearchFacet[];
+  totalNumResults: number;
+  searchQuery: string;
+  normalizedQuery: string;
+}
+
+export async function performDySearch(
+  query: string,
+  pathname: string,
+  cardType: CardType,
+  offset = 0,
+  numItems = 25,
+  filters: Record<string, string[]> = {},
+): Promise<DySearchResult> {
+  const empty: DySearchResult = { slots: [], facets: [], totalNumResults: 0, searchQuery: query, normalizedQuery: query };
+
+  if (!query.trim()) return empty;
+
+  const identity = readIdentity();
+  const recommendationContext = getDyRecommendationContext(pathname);
+  const pageId = getPageId(pathname);
+
+  const filterConditions = Object.entries(filters)
+    .filter(([, values]) => values.length > 0)
+    .map(([column, values]) => ({
+      type: 'ATTRIBUTE' as const,
+      column,
+      operator: 'IN_LIST' as const,
+      args: values,
+    }));
+
+  const payload: Record<string, unknown> = {
+    user: identity.user,
+    session: identity.session,
+    query: {
+      pagination: { numItems, offset },
+      text: query,
+      ...(filterConditions.length > 0 ? { filter: { conditions: filterConditions } } : {}),
+    },
+    context: {
+      page: {
+        type: recommendationContext.type,
+        location: window.location.href,
+        data: [pageId],
+      },
+      device: {
+        userAgent: navigator.userAgent,
+        type: detectDeviceType(),
+      },
+      pageAttributes: {
+        tier: cardType,
+      },
+    },
+    selector: {
+      name: 'Semantic Search',
+    },
+    options: {
+      returnAnalyticsMetadata: false,
+      isImplicitClientData: false,
+    },
+  };
+
+  const response = await fetch('/api/dy/search', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(payload),
+    credentials: 'same-origin',
+  });
+
+  if (!response.ok) return empty;
+
+  const body = await response.json();
+  applyReturnedCookies(body?.cookies);
+
+  const data = body?.choices?.[0]?.variations?.[0]?.payload?.data;
+  if (!data) return empty;
+
+  return {
+    slots: data.slots ?? [],
+    facets: data.facets ?? [],
+    totalNumResults: data.totalNumResults ?? 0,
+    searchQuery: data.searchQuery ?? query,
+    normalizedQuery: data.normalizedQuery ?? query,
+  };
+}
