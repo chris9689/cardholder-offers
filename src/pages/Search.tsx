@@ -12,6 +12,7 @@ import { performDySearch, DySearchFacet, DySearchResult } from '../lib/dyServerA
 import { useCard } from '../contexts/CardContext';
 
 const PAGE_SIZE = 25;
+const FACET_PREVIEW_COUNT = 6;
 
 function capitalize(s: string) {
   return s.charAt(0).toUpperCase() + s.slice(1);
@@ -29,6 +30,7 @@ function FacetPanel({
   onClear: () => void;
 }) {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [showAllValues, setShowAllValues] = useState<Record<string, boolean>>({});
   const hasActive = Object.values(activeFilters).some((v) => v.length > 0);
 
   return (
@@ -50,7 +52,12 @@ function FacetPanel({
 
         {facets.map((facet) => {
           const isOpen = expanded[facet.column] !== false;
+          const isShowingAllValues = showAllValues[facet.column] === true;
           const active = activeFilters[facet.column] ?? [];
+          const visibleValues = isShowingAllValues
+            ? facet.values
+            : facet.values.filter((value, index) => index < FACET_PREVIEW_COUNT || active.includes(value.name));
+          const canToggleShowAll = facet.values.length > FACET_PREVIEW_COUNT;
 
           return (
             <div key={facet.column} className="border-b border-outline-variant/10 last:border-b-0">
@@ -79,7 +86,7 @@ function FacetPanel({
                     className="overflow-hidden"
                   >
                     <div className="px-5 pb-4 flex flex-col gap-2">
-                      {facet.values.map((v) => {
+                      {visibleValues.map((v) => {
                         const checked = active.includes(v.name);
                         return (
                           <label key={v.name} className="flex items-center gap-2.5 cursor-pointer group">
@@ -98,6 +105,20 @@ function FacetPanel({
                           </label>
                         );
                       })}
+                      {canToggleShowAll && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setShowAllValues((prev) => ({
+                              ...prev,
+                              [facet.column]: !isShowingAllValues,
+                            }))
+                          }
+                          className="mt-1 text-left font-sans text-[10px] font-black uppercase tracking-wider text-secondary hover:text-primary transition-colors"
+                        >
+                          {isShowingAllValues ? 'Show less' : `Show more (${facet.values.length - FACET_PREVIEW_COUNT})`}
+                        </button>
+                      )}
                     </div>
                   </motion.div>
                 )}
