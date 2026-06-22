@@ -216,11 +216,11 @@ export default function SearchPage() {
             to="/"
             className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-secondary mb-6 hover:text-primary transition-colors"
           >
-            <ChevronLeft size={14} /> Back to curated home
+            <ChevronLeft size={14} /> Back to home
           </Link>
 
           <span className="font-sans text-[10px] font-black text-secondary uppercase tracking-[0.4em] mb-4 block">
-            Card Benefits Search
+            Spending Offers Search
           </span>
           <h1 className="text-4xl md:text-5xl text-primary font-black mb-4 tracking-tighter uppercase not-italic">
             Search Results

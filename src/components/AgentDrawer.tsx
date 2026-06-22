@@ -4,25 +4,28 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
-import { X, Send, Sparkles, MessageCircle, ArrowUpRight, HelpCircle } from 'lucide-react';
+import { X, Send, Sparkles, ArrowUpRight, HelpCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useCard } from '../contexts/CardContext';
-import { Link } from 'react-router-dom';
-import { OFFERS, NEAR_ME_OFFERS, getOfferRouteToken } from '../data/offers';
+import { Link, useLocation } from 'react-router-dom';
 import { USER } from '../config';
+import { DyRecommendationSlot, performShoppingMuse } from '../lib/dyServerApi';
+import { MUSE_PRESET_PROMPTS } from '../config/musePrompts';
 
 interface Message {
   id: string;
   sender: 'user' | 'agent';
   text: string;
   timestamp: string;
-  recommendations?: typeof OFFERS;
+  recommendations?: DyRecommendationSlot[];
 }
 
 export default function AgentDrawer() {
   const { isAgentOpen, setIsAgentOpen, cardType } = useCard();
+  const { pathname } = useLocation();
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [chatId, setChatId] = useState<string | undefined>(undefined);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const [messages, setMessages] = useState<Message[]>([
@@ -42,12 +45,12 @@ export default function AgentDrawer() {
     scrollToBottom();
   }, [messages, isTyping, isAgentOpen]);
 
-  // Handle message sending
-  const handleSend = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim()) return;
+  const submitPrompt = async (rawPrompt: string) => {
+    const userText = rawPrompt.trim();
+    if (!userText) {
+      return;
+    }
 
-    const userText = input;
     const userMsg: Message = {
       id: Date.now().toString(),
       sender: 'user',
@@ -59,56 +62,60 @@ export default function AgentDrawer() {
     setInput('');
     setIsTyping(true);
 
-    // Generate responsive agent recommendations
-    setTimeout(() => {
-      let replyText = "I have scanned our network for available rewards matching your request.";
-      let matchedOffers: typeof OFFERS = [];
+    try {
+      const result = await performShoppingMuse(userText, pathname, cardType, chatId);
 
-      const query = userText.toLowerCase();
-
-      if (query.includes('hotel') || query.includes('stay') || query.includes('travel') || query.includes('room') || query.includes('rosewood')) {
-        replyText = "Based on your preference for stays, I recommend booking with Rosewood Hotels, where you can find great room upgrade promotions and extra points perks.";
-        matchedOffers = OFFERS.filter(o => o.id === '4');
-      } else if (query.includes('eat') || query.includes('dining') || query.includes('michelin') || query.includes('food') || query.includes('bernardin') || query.includes('restaurant')) {
-        replyText = "For fine dining in New York, Le Bernardin offers a great experience. We have a special 15% reward waiting for you nearby.";
-        // Combine offers from normal and nearby lists
-        matchedOffers = NEAR_ME_OFFERS.filter(o => o.id === 'nearby-1');
-      } else if (query.includes('shopping') || query.includes('shop') || query.includes('fashion') || query.includes('luxury') || query.includes('bag') || query.includes('brand')) {
-        replyText = "For shopping, we have statement credits and cardholder rewards on boutiques like LVMH and luxury departments.";
-        const shop1 = OFFERS.filter(o => o.id === '5');
-        const shop2 = NEAR_ME_OFFERS.filter(o => o.id === 'nearby-2');
-        matchedOffers = [...shop1, ...shop2];
-      } else if (query.includes('disney') || query.includes('movie') || query.includes('stream') || query.includes('subscription')) {
-        replyText = "If you want to enjoy home entertainment, Disney+ offers credit benefits when you use your card today.";
-        matchedOffers = OFFERS.filter(o => o.id === '2');
-      } else if (query.includes('event') || query.includes('gala') || query.includes('ticket') || query.includes('early')) {
-        replyText = "As a cardholder, you gain access to pre-sale passes and seasonal events through Eventbrite.";
-        matchedOffers = OFFERS.filter(o => o.id === '6');
-      } else {
-        // Default agent response
-        replyText = "Let me highlight some of our recommended offers suited for your card:";
-        // Take a couple of good ones
-        matchedOffers = [OFFERS[3], NEAR_ME_OFFERS[0]];
+      if (!result) {
+        setMessages(prev => [
+          ...prev,
+          {
+            id: (Date.now() + 1).toString(),
+            sender: 'agent',
+            text: 'I could not reach Shopping Muse right now. Please try again.',
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          },
+        ]);
+        return;
       }
+
+      const flattenedSlots = result.widgets.flatMap((widget) => widget.slots || []);
+      const uniqueSlots = Array.from(new Map(flattenedSlots.map((slot) => [slot.sku, slot])).values()).slice(0, 6);
+
+      setChatId((prevChatId) => result.chatId || prevChatId);
 
       const agentMsg: Message = {
         id: (Date.now() + 1).toString(),
         sender: 'agent',
-        text: replyText,
+        text: result.assistant,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        recommendations: matchedOffers
+        recommendations: uniqueSlots,
       };
 
       setMessages(prev => [...prev, agentMsg]);
+    } catch {
+      setMessages(prev => [
+        ...prev,
+        {
+          id: (Date.now() + 1).toString(),
+          sender: 'agent',
+          text: 'I hit an unexpected error while calling Shopping Muse.',
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        },
+      ]);
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
   };
 
-  const presetQuestions = [
-    "Recommend ultra-luxury hotels",
-    "Show me fine dining rewards near NYC",
-    "Where can I get high-end shopping statement credits?"
-  ];
+  // Handle message sending
+  const handleSend = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim() || isTyping) return;
+
+    const prompt = input;
+    setInput('');
+    void submitPrompt(prompt);
+  };
 
   if (!isAgentOpen) return null;
 
@@ -187,18 +194,28 @@ export default function AgentDrawer() {
                 {msg.recommendations && msg.recommendations.length > 0 && (
                   <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-[90%]">
                     {msg.recommendations.map((rec) => (
-                      <div key={rec.id} className="bg-white rounded-2xl border border-outline-variant/10 overflow-hidden shadow-sm hover:shadow-md transition-all group">
+                      <div key={rec.sku} className="bg-white rounded-2xl border border-outline-variant/10 overflow-hidden shadow-sm hover:shadow-md transition-all group">
                         <div className="h-28 relative">
-                          <img src={rec.image} className="w-full h-full object-cover" alt={rec.merchant} />
+                          {rec.productData.image_url ? (
+                            <img src={rec.productData.image_url} className="w-full h-full object-cover" alt={rec.productData.brand || rec.sku} />
+                          ) : (
+                            <div className="w-full h-full bg-surface-container-high flex items-center justify-center">
+                              {rec.productData.logo_url ? (
+                                <img src={rec.productData.logo_url} className="h-14 w-auto object-contain" alt={rec.productData.brand || rec.sku} />
+                              ) : (
+                                <span className="font-sans text-xs font-black text-primary uppercase px-2 text-center">{rec.productData.brand || rec.sku}</span>
+                              )}
+                            </div>
+                          )}
                           <div className="absolute top-3 left-3 bg-primary/95 text-white px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest">
-                            {rec.category}
+                            {rec.productData.categories?.[0] ?? 'Offer'}
                           </div>
                         </div>
                         <div className="p-4">
-                          <h4 className="font-sans font-black text-xs uppercase tracking-tight text-primary leading-tight mb-1 group-hover:text-secondary transition-colors line-clamp-1">{rec.merchant}</h4>
-                          <p className="text-[10px] text-on-surface-variant line-clamp-2 h-8 leading-snug mb-3 opacity-80">{rec.title}</p>
+                          <h4 className="font-sans font-black text-xs uppercase tracking-tight text-primary leading-tight mb-1 group-hover:text-secondary transition-colors line-clamp-1">{rec.productData.brand || rec.sku}</h4>
+                          <p className="text-[10px] text-on-surface-variant line-clamp-2 h-8 leading-snug mb-3 opacity-80">{rec.productData.name}</p>
                           <Link 
-                            to={`/offers/${getOfferRouteToken(rec)}`}
+                            to={`/offers/${encodeURIComponent(rec.sku)}`}
                             onClick={() => setIsAgentOpen(false)}
                             className="w-full bg-surface-container text-primary hover:bg-secondary hover:text-white py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-1"
                           >
@@ -234,13 +251,20 @@ export default function AgentDrawer() {
               <HelpCircle size={12} className="text-secondary" /> Suggested Requests:
             </span>
             <div className="flex flex-wrap gap-2">
-              {presetQuestions.map((q, i) => (
+              {MUSE_PRESET_PROMPTS.map((preset) => (
                 <button
-                  key={i}
-                  onClick={() => setInput(q)}
+                  key={preset.id}
+                  onClick={() => {
+                    if (isTyping) {
+                      return;
+                    }
+                    setInput('');
+                    void submitPrompt(preset.prompt);
+                  }}
+                  disabled={isTyping}
                   className="bg-white text-primary border border-outline-variant/10 hover:border-secondary hover:bg-secondary/5 px-4 py-2.5 rounded-xl font-sans text-[10px] font-black uppercase tracking-wider transition-all"
                 >
-                  {q}
+                  {preset.label}
                 </button>
               ))}
             </div>

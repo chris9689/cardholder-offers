@@ -468,3 +468,72 @@ export async function performDySearch(
     normalizedQuery: data.normalizedQuery ?? query,
   };
 }
+
+// ─── Shopping Muse ────────────────────────────────────────────────────────────
+
+export interface DyShoppingMuseWidget {
+  title?: string;
+  slots: DyRecommendationSlot[];
+}
+
+export interface DyShoppingMuseResult {
+  assistant: string;
+  support: boolean;
+  chatId?: string;
+  widgets: DyShoppingMuseWidget[];
+}
+
+export async function performShoppingMuse(
+  prompt: string,
+  pathname: string,
+  cardType: CardType,
+  chatId?: string,
+): Promise<DyShoppingMuseResult | null> {
+  if (!prompt.trim()) {
+    return null;
+  }
+
+  const basePayload = buildBasePayload(pathname, cardType);
+
+  const payload: Record<string, unknown> = {
+    ...basePayload,
+    query: {
+      text: prompt,
+      ...(chatId ? { chatId } : {}),
+    },
+    selector: {
+      name: 'Shopping Muse',
+    },
+    options: {
+      productData: {
+        skusOnly: false,
+      },
+    },
+  };
+
+  const response = await fetch('/api/dy/shopping-muse', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(payload),
+    credentials: 'same-origin',
+  });
+
+  if (!response.ok) {
+    return null;
+  }
+
+  const body = await response.json();
+  applyReturnedCookies(body?.cookies);
+
+  const data = body?.choices?.[0]?.variations?.[0]?.payload?.data;
+  if (!data || typeof data !== 'object') {
+    return null;
+  }
+
+  return {
+    assistant: typeof data.assistant === 'string' ? data.assistant : 'No response available.',
+    support: Boolean(data.support),
+    chatId: typeof data.chatId === 'string' ? data.chatId : undefined,
+    widgets: Array.isArray(data.widgets) ? data.widgets : [],
+  };
+}
