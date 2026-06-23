@@ -12,17 +12,18 @@ import SearchFilters from '../components/SearchFilters';
 import OfferCard from '../components/OfferCard';
 import DyOfferCard from '../components/DyOfferCard';
 import CategoryCard from '../components/CategoryCard';
-import { OFFERS, NEAR_ME_OFFERS, CATEGORIES, getOfferRouteToken } from '../data/offers';
+import { OFFERS, NEAR_ME_OFFERS, CATEGORIES, CuratedCategory, getOfferRouteToken, rankCuratedCategories } from '../data/offers';
 import { useCard } from '../contexts/CardContext';
 import { USER } from '../config';
 import { getCuratedHomepagePrompts } from '../config/curatedPrompts';
-import { chooseHomepageGroup, HomepageChoiceResult, chooseUserBar } from '../lib/dyServerApi';
+import { chooseHomepageGroup, fetchUserAffinities, HomepageChoiceResult, chooseUserBar } from '../lib/dyServerApi';
 
 export default function Home() {
   const { cardType, points, userVariables, setUserVariables } = useCard();
   const { pathname } = useLocation();
   const [homepageData, setHomepageData] = useState<HomepageChoiceResult | null>(null);
   const [recsPage, setRecsPage] = useState(0);
+  const [curatedCategories, setCuratedCategories] = useState<CuratedCategory[]>(CATEGORIES);
 
   useEffect(() => {
     let isMounted = true;
@@ -65,6 +66,24 @@ export default function Home() {
       isMounted = false;
     };
   }, [pathname, cardType, setUserVariables]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadRankedCategories = async () => {
+      const affinityProfile = await fetchUserAffinities();
+      const ranked = rankCuratedCategories(affinityProfile?.categories, affinityProfile?.uid ?? 'guest-seed');
+      if (isMounted) {
+        setCuratedCategories(ranked);
+      }
+    };
+
+    void loadRankedCategories();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const displayName = userVariables?.name ?? USER.name;
   const displayCardType = userVariables?.cardType ?? cardType;
@@ -190,7 +209,7 @@ export default function Home() {
           </div>
           
           <div className="grid grid-cols-2 lg:grid-cols-6 gap-8">
-            {CATEGORIES.map(cat => (
+            {curatedCategories.map(cat => (
               <CategoryCard key={cat.name} {...cat} />
             ))}
           </div>

@@ -193,14 +193,116 @@ export const NEAR_ME_OFFERS: Offer[] = [
   },
 ];
 
-export const CATEGORIES = [
-  { name: 'Dining', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCpjQVRBhy9ZR9WryL458Yt1KUsSsk1_A8SkKpI_pRGf4nKAo47SQQlFL0TLL37cJa0eZ_8rs0Zrp7MW49cXpMFh7_h5-C4cXaestNMQvDOupmH9gXMmwOjWiJEb-QWVqMEdAknMYnos9G2xHPRSz_7FppIpQE0gaNSeXK00_HMubJA2lD0dHmZrX0C38GHh1aL5whtiMqPhcd697b4l2G7Ahsf9D6hCRRirBbmATwCsWD0aNo44c74q1zofnyVkTftGhQ_ieTyzFc' },
-  { name: 'Travel', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAte2KBCsl3ruVRqENPnvdiQfI5X4faDILojVoD3PGUnhq6mo_F47X7aROfnf4DNpFh8WDhyH81sFv1o6nnQh1nz0xvm2pCMwWpaKPnDZAO38tkl481rAC0WMA4WwQlwEOEupaZ5LqJ5CbSzA262yd0cW7a7ZuVpdq-ww9Mf6lhfX_7hloTqeIzPI69osv6MEIW1_hRqpYbieW1kZHFjlzn5mtVN5CK4TZLjw-KWN6rx35C5U6jYKzQnYRU21TnRmrL0lIl8TpUPnA' },
-  { name: 'Shopping', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD6qfGG-A3i9xtOkH2nL977rhXQsXeaJnbm5yGL7KimgJQndYo1eKJW5QnT1WcabMvXO1CwbUEs7bhCVCSPILY-T4LJnnZ1BlA5_yxgNEcxvEqJlIdU2kj8l4ZRiHIW0H-XqB-4iF9epwR_Hp1LMm0kMkg8IxGEt51lk8qlsHIjil7mZcJGybz3l0YoXt6ZOquRP7IfqB72zeLmd8tpH-iCLBPkZmjwOsgcTs4k3bq_kcXoO0djq8QGff6rss0QLyh7w1j0hsswwhE' },
-  { name: 'Wellness', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAARzv5ulB41iCER3Aark93TRtzLFgnokdSQgvxZDKEyiozj5IY0V29papucTUJ-65iBAtclqkSpThLuJNzITutan_rMgztzmUZ9RZLIpM32U-fieCDH5ANNXK05eqz5A7SqMjfN8LI5T5zNMhcS-GlMa-NWCqt2oeQdnNDXSI3__6qCOo0r3HmhBo6KzgCGcHI9QVhATWAWk-dhpU1rVGl2XEdBQsf2FjQnraevvug4LM3XUJgxxGXXrnjlVd5g3RToWtfknoDC-I' },
-  { name: 'Experiences', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCAspWNcN5pU2XgihhGGPC3aHzfVwEqcCsWY-PS4cF_HyuNq28tUnbIa3uBVHD4I8Q2pD2o431woO7oW-Ml5ClLvr7MhMu8-31f9IsAUSZ7dSohHPz6xeqG0pLwb_N15oQ8_u3e0NrmZZlmjYVLXiyW0cwRexs0vK0c1EAAwrsfCuRuw8NM7J0s7xX-FhFzuJatoubZAHE1A6_ss_pF_eZvmzCk-ef1LuqjKh37veHriEMEMQ5HD45MPOpBiIaudHIDVpt-5Lewj-Y' },
-  { name: 'Events', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDGVD27s3H6K42sfVXcdobWYu0As3kBlUc_bpbbz_Km2KhnZKcYB2LnFiK9l4bvN78ucSEwUHV8QGYyqbCExjRdKvyvyr5fU-_3mXZzFAk-hXytKGu0PQULq2vMHHdYiJFUd-xsq0xupFcnEweb6q42DSuVXI4z7ruE899UiJ74r9iVg8m1dt41b9MUBgN6qUdcnIDjhPFyD7SgA8ajyu9rbcFQ0UYhItLZGz_Bw36lyZ7s8HV18RR3H4xHQ1U9XwroYZdte2bifBc' },
+export interface CuratedCategory {
+  name: 'Dining' | 'Travel' | 'Shopping' | 'Wellness' | 'Experiences' | 'Events';
+  image: string;
+  affinityKeys: string[];
+}
+
+export const CATEGORIES: CuratedCategory[] = [
+  {
+    name: 'Dining',
+    image: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=900&q=80',
+    affinityKeys: ['DINING', 'FOODDINING', 'RESTAURANTS', 'FOOD'],
+  },
+  {
+    name: 'Travel',
+    image: 'https://images.unsplash.com/photo-1502920514313-52581002a659?auto=format&fit=crop&w=900&q=80',
+    affinityKeys: ['TRAVEL'],
+  },
+  {
+    name: 'Shopping',
+    image: 'https://images.unsplash.com/photo-1481437156560-3205f6a55735?auto=format&fit=crop&w=900&q=80',
+    affinityKeys: ['SHOPPING', 'RETAIL'],
+  },
+  {
+    name: 'Wellness',
+    image: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=900&q=80',
+    affinityKeys: ['WELLNESS', 'HEALTH', 'FITNESS', 'SPORTS'],
+  },
+  {
+    name: 'Experiences',
+    image: 'https://images.unsplash.com/photo-1518998053901-5348d3961a04?auto=format&fit=crop&w=900&q=80',
+    affinityKeys: ['ARTSCULTURE', 'ARTS', 'CULTURE', 'EXPERIENCES'],
+  },
+  {
+    name: 'Events',
+    image: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=900&q=80',
+    affinityKeys: ['ENTERTAINMENT', 'EVENTS', 'NIGHTLIFE', 'SHOWS'],
+  },
 ];
+
+function normalizeAffinityKey(key: string): string {
+  return key.toUpperCase().replace(/[^A-Z0-9]/g, '');
+}
+
+function hashString(seed: string): number {
+  let hash = 2166136261;
+  for (let i = 0; i < seed.length; i += 1) {
+    hash ^= seed.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+}
+
+function seededRandomGenerator(seed: number): () => number {
+  let state = seed || 1;
+  return () => {
+    state ^= state << 13;
+    state ^= state >>> 17;
+    state ^= state << 5;
+    return ((state >>> 0) % 10000) / 10000;
+  };
+}
+
+function shuffleWithSeed<T>(items: T[], seedSource: string): T[] {
+  const shuffled = [...items];
+  const random = seededRandomGenerator(hashString(seedSource));
+
+  for (let i = shuffled.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+
+  return shuffled;
+}
+
+export function rankCuratedCategories(
+  affinities: Record<string, number> | null | undefined,
+  uidSeed: string,
+): CuratedCategory[] {
+  const normalizedAffinities: Record<string, number> = {};
+
+  for (const [key, value] of Object.entries(affinities ?? {})) {
+    const normalizedKey = normalizeAffinityKey(key);
+    const numericValue = Number(value);
+    if (!normalizedKey || !Number.isFinite(numericValue)) {
+      continue;
+    }
+    normalizedAffinities[normalizedKey] = numericValue;
+  }
+
+  const scored = CATEGORIES.map((category) => {
+    const score = category.affinityKeys.reduce((maxScore, affinityKey) => {
+      const value = normalizedAffinities[normalizeAffinityKey(affinityKey)] ?? 0;
+      return Math.max(maxScore, value);
+    }, 0);
+
+    return { category, score };
+  });
+
+  const ranked = scored
+    .filter((entry) => entry.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .map((entry) => entry.category);
+
+  const missing = scored
+    .filter((entry) => entry.score === 0)
+    .map((entry) => entry.category);
+
+  const randomizedMissing = shuffleWithSeed(missing, uidSeed || 'guest-seed');
+  return [...ranked, ...randomizedMissing];
+}
 
 export function getOfferRouteToken(offer: Offer): string {
   return offer.sku ?? offer.id;

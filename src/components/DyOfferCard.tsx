@@ -43,8 +43,8 @@ const DyOfferCard: React.FC<DyOfferCardProps> = ({ slot }) => {
       </div>
 
       <div className="p-5 flex flex-col gap-2">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
             {productData.logo_url ? (
               <div className="w-6 h-6 rounded bg-surface-container-high flex items-center justify-center border border-outline-variant/20 overflow-hidden shrink-0">
                 <img
@@ -58,12 +58,12 @@ const DyOfferCard: React.FC<DyOfferCardProps> = ({ slot }) => {
                 {brand.slice(0, 2).toUpperCase()}
               </div>
             )}
-            <span className="font-sans text-xs font-semibold text-on-surface-variant uppercase tracking-wider truncate max-w-[100px]">
+            <span className="font-sans text-xs font-semibold text-on-surface-variant uppercase tracking-wider truncate">
               {brand}
             </span>
           </div>
           {category && (
-            <span className="text-[10px] font-bold text-secondary uppercase tracking-widest bg-secondary-fixed/30 px-2 py-0.5 rounded shrink-0">
+            <span className="text-[10px] font-bold text-secondary uppercase tracking-widest bg-secondary-fixed/30 px-2 py-0.5 rounded max-w-full sm:max-w-[45%] truncate whitespace-nowrap shrink-0">
               {category}
             </span>
           )}

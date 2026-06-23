@@ -19,6 +19,7 @@ Server-side Dynamic Yield calls are proxied through Vercel functions:
 
 - `api/dy/pageview.js` -> `https://dy-api.com/v2/collect/user/pageview`
 - `api/dy/choose.js` -> `https://dy-api.com/v2/serve/user/choose`
+- `api/dy/user-affinities.js` -> `https://rcom.dynamicyield.com/userAffinities?sec=8794982&uid=<dyid>`
 
 Set this environment variable in Vercel project settings:
 

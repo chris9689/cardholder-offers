@@ -71,6 +71,11 @@ export interface UserBarData {
   points: number;
 }
 
+export interface UserAffinityProfile {
+  uid: string;
+  categories: Record<string, number>;
+}
+
 const STORAGE_KEYS = {
   dyid: ['_dyid', 'dyid'],
   dyidServer: ['_dyid_server', 'dyid_server'],
@@ -614,6 +619,47 @@ export async function chooseUserBar(pathname: string, cardType: CardType): Promi
       cardType,
       points: normalizedPoints,
     };
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchUserAffinities(): Promise<UserAffinityProfile | null> {
+  const identity = readIdentity();
+  const uid = identity.user.dyid;
+
+  if (!uid) {
+    return null;
+  }
+
+  try {
+    const response = await fetch('/api/dy/user-affinities', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ uid }),
+      credentials: 'same-origin',
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const body = await response.json();
+    const rawCategories = body?.categories;
+
+    if (!rawCategories || typeof rawCategories !== 'object') {
+      return { uid, categories: {} };
+    }
+
+    const categories: Record<string, number> = {};
+    for (const [key, value] of Object.entries(rawCategories as Record<string, unknown>)) {
+      const numericValue = Number(value);
+      if (Number.isFinite(numericValue)) {
+        categories[key] = numericValue;
+      }
+    }
+
+    return { uid, categories };
   } catch {
     return null;
   }

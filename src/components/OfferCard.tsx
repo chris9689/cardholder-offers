@@ -40,16 +40,16 @@ const OfferCard: React.FC<OfferCardProps> = ({ offer }) => {
       </div>
 
       <div className="p-5 flex flex-col gap-2">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
             <div className="w-6 h-6 rounded bg-surface-container-high flex items-center justify-center text-[10px] font-bold text-primary border border-outline-variant/20">
               {offer.merchantLogo}
             </div>
-            <span className="font-sans text-xs font-semibold text-on-surface-variant uppercase tracking-wider">
+            <span className="font-sans text-xs font-semibold text-on-surface-variant uppercase tracking-wider truncate">
               {offer.merchant}
             </span>
           </div>
-          <span className="text-[10px] font-bold text-secondary uppercase tracking-widest bg-secondary-fixed/30 px-2 py-0.5 rounded">
+          <span className="text-[10px] font-bold text-secondary uppercase tracking-widest bg-secondary-fixed/30 px-2 py-0.5 rounded max-w-full sm:max-w-[45%] truncate whitespace-nowrap shrink-0">
             {offer.category}
           </span>
         </div>
