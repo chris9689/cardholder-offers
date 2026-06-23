@@ -15,13 +15,8 @@ import CategoryCard from '../components/CategoryCard';
 import { OFFERS, NEAR_ME_OFFERS, CATEGORIES, getOfferRouteToken } from '../data/offers';
 import { useCard } from '../contexts/CardContext';
 import { USER } from '../config';
+import { getCuratedHomepagePrompts } from '../config/curatedPrompts';
 import { chooseHomepageGroup, HomepageChoiceResult, chooseUserBar } from '../lib/dyServerApi';
-
-const SUGGESTED_PROMPTS = [
-  { label: 'Hotel upgrades & custom stays', text: 'Hotel upgrades and VIP luxury stays' },
-  { label: 'Michelin & dining rewards', text: 'Michelin star dining perks and nearby rewards' },
-  { label: 'Redeemed with points balance', text: `Offers redeemable with my points balance of ${USER.initialPoints.toLocaleString()}` }
-];
 
 export default function Home() {
   const { cardType, points, userVariables, setUserVariables } = useCard();
@@ -74,6 +69,7 @@ export default function Home() {
   const displayName = userVariables?.name ?? USER.name;
   const displayCardType = userVariables?.cardType ?? cardType;
   const displayPoints = userVariables?.points ?? points;
+  const suggestedPrompts = getCuratedHomepagePrompts(displayCardType, displayPoints);
 
   return (
     <div className="flex flex-col w-full pt-16">
@@ -104,9 +100,9 @@ export default function Home() {
         
         {/* Suggested Searches / Prompts */}
         <div className="mt-6 flex flex-col md:flex-row items-stretch md:items-center justify-start gap-2 w-full md:pl-[90px]">
-          {SUGGESTED_PROMPTS.map((prompt, i) => (
+          {suggestedPrompts.map((prompt) => (
             <Link
-              key={i}
+              key={prompt.id}
               to={`/curated?prompt=${encodeURIComponent(prompt.text)}`}
               className="inline-flex items-center justify-center md:justify-start gap-1.5 bg-white text-primary border border-outline-variant/10 hover:border-secondary hover:bg-secondary/5 px-4 py-3 md:py-2.5 rounded-xl font-sans text-[10px] font-black uppercase tracking-wider transition-all shadow-sm text-center md:text-left"
             >

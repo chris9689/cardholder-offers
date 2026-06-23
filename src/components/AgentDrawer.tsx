@@ -9,8 +9,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useCard } from '../contexts/CardContext';
 import { Link, useLocation } from 'react-router-dom';
 import { USER } from '../config';
+import { getCuratedHomepagePrompts } from '../config/curatedPrompts';
 import { DyRecommendationSlot, performShoppingMuse } from '../lib/dyServerApi';
-import { MUSE_PRESET_PROMPTS } from '../config/musePrompts';
 
 interface Message {
   id: string;
@@ -21,7 +21,7 @@ interface Message {
 }
 
 export default function AgentDrawer() {
-  const { isAgentOpen, setIsAgentOpen, cardType, userVariables } = useCard();
+  const { isAgentOpen, setIsAgentOpen, cardType, points, userVariables } = useCard();
   const { pathname } = useLocation();
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -30,12 +30,14 @@ export default function AgentDrawer() {
 
   const displayName = userVariables?.name ?? USER.name;
   const displayCardType = userVariables?.cardType ?? cardType;
+  const displayPoints = userVariables?.points ?? points;
+  const presetPrompts = getCuratedHomepagePrompts(displayCardType, displayPoints);
 
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
       sender: 'agent',
-      text: `Welcome, ${displayName.split(' ')[0]}. I am your Mastercard ${displayCardType} offers assistant. Whether you are looking for dining perks, travel rewards, or cashback offers, let me know what you have in mind and I will find the perfect offers for you.`,
+      text: `Welcome, ${displayName.split(' ')[0]}. I am your assistant for ${displayCardType} card offers. Whether you are looking for dining perks, travel rewards, or cashback offers, let me know what you have in mind and I will find the perfect offers for you.`,
       timestamp: 'Just now',
     }
   ]);
@@ -166,7 +168,7 @@ export default function AgentDrawer() {
               </div>
               <div>
                 <h3 className="text-lg md:text-xl font-black uppercase tracking-wider">AI Assistant</h3>
-                <p className="text-[10px] font-bold text-secondary uppercase tracking-[0.2em]">{displayCardType} Offers</p>
+                
               </div>
             </div>
             
@@ -266,7 +268,7 @@ export default function AgentDrawer() {
               <HelpCircle size={12} className="text-secondary" /> Suggested Requests:
             </span>
             <div className="flex flex-wrap gap-2">
-              {MUSE_PRESET_PROMPTS.map((preset) => (
+              {presetPrompts.map((preset) => (
                 <button
                   key={preset.id}
                   onClick={() => {
@@ -274,7 +276,7 @@ export default function AgentDrawer() {
                       return;
                     }
                     setInput('');
-                    void submitPrompt(preset.prompt);
+                    void submitPrompt(preset.text);
                   }}
                   disabled={isTyping}
                   className="bg-white text-primary border border-outline-variant/10 hover:border-secondary hover:bg-secondary/5 px-4 py-2.5 rounded-xl font-sans text-[10px] font-black uppercase tracking-wider transition-all"

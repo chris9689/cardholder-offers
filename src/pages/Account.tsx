@@ -7,17 +7,83 @@ import { CreditCard, Award, History, Settings, ChevronRight, PieChart, Bell, Spa
 import React from 'react';
 import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
-import { useCard } from '../contexts/CardContext';
+import { CardType, useCard } from '../contexts/CardContext';
 import { USER } from '../config';
 
+interface ActivityItem {
+  merchant: string;
+  date: string;
+  amount: string;
+  reward: string;
+}
+
+interface TierAccountMock {
+  cardEnding: string;
+  nextTierLabel: string;
+  progressWidthClass: string;
+  pointsLabel: string;
+  activities: ActivityItem[];
+}
+
+const DEFAULT_ACTIVITIES: ActivityItem[] = [
+  { merchant: '7-Eleven', date: 'May 12, 2026', amount: '$24.50', reward: '+$2.45 Cashback' },
+  { merchant: 'Le Bernardin', date: 'May 10, 2026', amount: '$450.00', reward: '+2,250 Points' },
+  { merchant: 'Matsumoto KiYoshi', date: 'May 05, 2026', amount: '$85.20', reward: '+$8.52 Cashback' },
+];
+
+const DEFAULT_TIER_MOCK: TierAccountMock = {
+  cardEnding: '4242',
+  nextTierLabel: 'Spend $1,250 more to unlock Centurion Privileges',
+  progressWidthClass: 'w-3/4',
+  pointsLabel: 'Available Points',
+  activities: DEFAULT_ACTIVITIES,
+};
+
+const TIER_ACCOUNT_MOCKS: Record<CardType, TierAccountMock> = {
+  Standard: {
+    cardEnding: '1184',
+    nextTierLabel: 'Spend $2,400 more this quarter to unlock Premium tier perks',
+    progressWidthClass: 'w-2/5',
+    pointsLabel: 'Starter Rewards Points',
+    activities: [
+      { merchant: 'Target', date: 'Jun 14, 2026', amount: '$94.23', reward: '+942 Points' },
+      { merchant: 'Shell', date: 'Jun 12, 2026', amount: '$56.10', reward: '+$5.61 Cashback' },
+      { merchant: 'DoorDash', date: 'Jun 09, 2026', amount: '$31.87', reward: '+318 Points' },
+    ],
+  },
+  Premium: {
+    cardEnding: '7721',
+    nextTierLabel: 'Spend $3,600 more to unlock Black card privileges',
+    progressWidthClass: 'w-3/5',
+    pointsLabel: 'Premium Rewards Points',
+    activities: [
+      { merchant: 'Marriott Marquis', date: 'Jun 16, 2026', amount: '$682.00', reward: '+3,410 Points' },
+      { merchant: 'United Airlines', date: 'Jun 11, 2026', amount: '$458.40', reward: '+4,584 Points' },
+      { merchant: 'Apple Store', date: 'Jun 07, 2026', amount: '$219.99', reward: '+$22.00 Cashback' },
+    ],
+  },
+  Black: {
+    cardEnding: '4242',
+    nextTierLabel: 'You are in the highest published tier. Unlock invite-only concierge moments with premium spend.',
+    progressWidthClass: 'w-[92%]',
+    pointsLabel: 'Elite Rewards Points',
+    activities: [
+      { merchant: 'Aman Tokyo', date: 'Jun 18, 2026', amount: '$1,240.00', reward: '+6,200 Points' },
+      { merchant: 'Le Bernardin', date: 'Jun 13, 2026', amount: '$450.00', reward: '+2,250 Points' },
+      { merchant: 'Rimowa', date: 'Jun 08, 2026', amount: '$980.00', reward: '+$98.00 Cashback' },
+    ],
+  },
+};
+
 export default function Account() {
-  const { cardType } = useCard();
-  
-  const activities = [
-    { merchant: '7-Eleven', date: 'May 12, 2026', amount: '$24.50', reward: '+$2.45 Cashback' },
-    { merchant: 'Le Bernardin', date: 'May 10, 2026', amount: '$450.00', reward: '+2,250 Points' },
-    { merchant: 'Matsumoto KiYoshi', date: 'May 05, 2026', amount: '$85.20', reward: '+$8.52 Cashback' },
-  ];
+  const { cardType, points, userVariables } = useCard();
+
+  const displayName = userVariables?.name ?? USER.name;
+  const displayTier = userVariables?.cardType ?? cardType;
+  const displayPoints = userVariables?.points ?? points ?? USER.initialPoints;
+
+  const tierData = TIER_ACCOUNT_MOCKS[displayTier] ?? DEFAULT_TIER_MOCK;
+  const activities = tierData.activities?.length > 0 ? tierData.activities : DEFAULT_ACTIVITIES;
 
   return (
     <div className="pt-16 min-h-screen pb-32 bg-surface">
@@ -30,15 +96,15 @@ export default function Account() {
                 <span className="font-sans text-[10px] font-black text-secondary uppercase tracking-[0.4em]">Membership Dashboard</span>
                 <div className="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse" />
               </div>
-              <h1 className="text-4xl md:text-6xl text-primary font-black mb-6">{USER.name}</h1>
+              <h1 className="text-4xl md:text-6xl text-primary font-black mb-6">{displayName}</h1>
               <div className="flex flex-wrap gap-3">
                 <div className="bg-primary px-5 py-2.5 rounded-xl flex items-center gap-2.5 shadow-lg shadow-primary/10">
                   <Award size={16} className="text-secondary" />
-                  <span className="font-sans text-[10px] font-black uppercase tracking-widest text-white">{cardType} Elite Tier</span>
+                  <span className="font-sans text-[10px] font-black uppercase tracking-widest text-white">{displayTier} Elite Tier</span>
                 </div>
                 <div className="bg-surface-container px-5 py-2.5 rounded-xl flex items-center gap-2.5 border border-outline-variant/20">
                    <CreditCard size={16} className="text-on-surface-variant" />
-                   <span className="font-sans text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Card Ending 4242</span>
+                   <span className="font-sans text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Card Ending {tierData.cardEnding}</span>
                 </div>
               </div>
             </div>
@@ -49,10 +115,10 @@ export default function Account() {
                 <span className="text-[10px] font-black uppercase tracking-widest">Next Tier Progress</span>
               </div>
               <div className="w-full h-1.5 bg-white rounded-full overflow-hidden mb-3">
-                <div className="h-full bg-secondary w-3/4 rounded-full" />
+                <div className={`h-full bg-secondary rounded-full ${tierData.progressWidthClass}`} />
               </div>
               <p className="text-[10px] font-bold text-on-surface-variant/60 uppercase tracking-widest leading-relaxed">
-                Spend $1,250 more to unlock <span className="text-primary font-black uppercase">Centurion Privileges</span>
+                {tierData.nextTierLabel}
               </p>
             </div>
           </div>
@@ -66,8 +132,8 @@ export default function Account() {
           <div className="bg-white p-10 rounded-[40px] shadow-sm border border-outline-variant/10">
             <span className="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.3em] mb-8 block">Total Balance</span>
             <div className="space-y-1">
-              <h3 className="text-6xl text-primary font-black">125,400</h3>
-              <p className="text-xs font-black text-green-600 uppercase tracking-widest">Available Points</p>
+              <h3 className="text-6xl text-primary font-black">{displayPoints.toLocaleString()}</h3>
+              <p className="text-xs font-black text-green-600 uppercase tracking-widest">{tierData.pointsLabel}</p>
             </div>
             <div className="mt-12 pt-8 border-t border-outline-variant/10">
               <button className="w-full bg-primary text-white py-4 rounded-2xl font-sans text-xs font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl shadow-primary/10">

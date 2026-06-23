@@ -9,8 +9,8 @@ import { ArrowRight, ChevronLeft, Send, Sparkles, MessageSquare, Bot, User } fro
 import { motion } from 'motion/react';
 import DyOfferCard from '../components/DyOfferCard';
 import { useCard } from '../contexts/CardContext';
+import { getCuratedHomepagePrompts } from '../config/curatedPrompts';
 import { DyShoppingMuseResult, performShoppingMuse } from '../lib/dyServerApi';
-import { MUSE_PRESET_PROMPTS } from '../config/musePrompts';
 
 interface MuseMessage {
   id: string;
@@ -23,7 +23,7 @@ export default function CuratedResults() {
   const [searchParams] = useSearchParams();
   const seedPrompt = searchParams.get('prompt') || '';
   const { pathname } = useLocation();
-  const { cardType, setIsAgentOpen, userVariables } = useCard();
+  const { cardType, points, setIsAgentOpen, userVariables } = useCard();
 
   const [inputVal, setInputVal] = useState(seedPrompt);
   const [messages, setMessages] = useState<MuseMessage[]>([]);
@@ -98,8 +98,9 @@ export default function CuratedResults() {
   const latestAssistantMessage = [...messages].reverse().find((msg) => msg.role === 'assistant' && msg.result);
   const latestWidgets = latestAssistantMessage?.result?.widgets ?? [];
   const displayName = userVariables?.name;
-  const displayPoints = userVariables?.points;
+  const displayPoints = userVariables?.points ?? points;
   const displayTier = userVariables?.cardType ?? cardType;
+  const presetPrompts = getCuratedHomepagePrompts(displayTier, displayPoints);
 
   return (
     <div className="pt-24 min-h-screen bg-surface">
@@ -145,13 +146,13 @@ export default function CuratedResults() {
           </form>
 
           <div className="mt-4 flex flex-wrap gap-2 max-w-3xl">
-            {MUSE_PRESET_PROMPTS.map((preset) => (
+            {presetPrompts.map((preset) => (
               <button
                 key={preset.id}
                 type="button"
                 onClick={() => {
                   setInputVal('');
-                  void runMusePrompt(preset.prompt);
+                  void runMusePrompt(preset.text);
                 }}
                 className="bg-white text-primary border border-outline-variant/10 hover:border-secondary hover:bg-secondary/5 px-4 py-2.5 rounded-xl font-sans text-[10px] font-black uppercase tracking-wider transition-all"
               >
