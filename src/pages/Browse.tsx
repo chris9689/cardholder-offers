@@ -130,7 +130,7 @@ export default function Browse() {
           <span className="font-sans text-[10px] font-black text-secondary uppercase tracking-[0.4em] mb-4 block">Merchant Catalog</span>
           <h1 className="text-4xl md:text-5xl text-primary font-black mb-4 tracking-tighter uppercase not-italic">Explore Offers</h1>
           <p className="font-sans text-on-surface-variant text-base max-w-2xl font-light leading-relaxed opacity-70">
-            Tier-matched rewards from the live product feed for your {selectedTier} card profile.
+            Rewards and Offers for your {selectedTier} card.
           </p>
         </div>
       </section>
@@ -189,7 +189,7 @@ export default function Browse() {
               </>
             ) : (
               <>
-                Showing <span className="text-primary font-bold">{visibleSlots.length}</span> {selectedTier} tier offers from product feed
+                Found <span className="text-primary font-bold">{visibleSlots.length}</span> {selectedTier} offers
               </>
             )}
           </p>
