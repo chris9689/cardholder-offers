@@ -3,9 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { ArrowRight, ChevronLeft, ChevronRight, Diamond, MapPin, ShieldCheck, Sparkles, Wallet } from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight, Diamond, MapPin, ShieldCheck, Wallet } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
-import { motion } from 'motion/react';
 import { Link, useLocation } from 'react-router-dom';
 import Hero from '../components/Hero';
 import SearchFilters from '../components/SearchFilters';
@@ -20,20 +19,30 @@ import { getAllProducts } from '../lib/productFeed';
 import { chooseHomepageGroup, fetchUserAffinities, HomepageChoiceResult, UserAffinityProfile, chooseUserBar } from '../lib/dyServerApi';
 
 const COUNTRY_HERO_IMAGES: Record<string, string> = {
+  FRANCE: 'https://images.unsplash.com/photo-1502602898536-47ad22581b52?auto=format&fit=crop&w=1400&q=80',
   SPAIN: 'https://images.unsplash.com/photo-1525716483401-5bcbad7fc13f?auto=format&fit=crop&w=1400&q=80',
   ITALY: 'https://images.unsplash.com/photo-1514890547357-a9ee288728e0?auto=format&fit=crop&w=1400&q=80',
+  UNITEDSTATES: 'https://images.unsplash.com/photo-1534430480872-3498386e7856?auto=format&fit=crop&w=1400&q=80',
   UNITEDARABEMIRATES: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1400&q=80',
 };
 
 const CITY_CODE_LABELS: Record<string, string> = {
+  CHI: 'Chicago',
   MAD: 'Madrid',
   BCN: 'Barcelona',
   VAL: 'Valencia',
   SEV: 'Seville',
+  PAR: 'Paris',
+  LYN: 'Lyon',
+  MRS: 'Marseille',
+  NCE: 'Nice',
   MIL: 'Milan',
   ROM: 'Rome',
   FLO: 'Florence',
   NAP: 'Naples',
+  NYC: 'New York City',
+  LAX: 'Los Angeles',
+  MIA: 'Miami',
   DXB: 'Dubai',
   AUH: 'Abu Dhabi',
 };
@@ -189,19 +198,18 @@ export default function Home() {
   const suggestedPrompts = getCuratedHomepagePrompts(displayCardType, displayPoints);
 
   const allFeedOffers = getAllProducts().filter((offer) => offer.in_stock);
-  const availableCountries = Array.from(new Set(allFeedOffers.map((offer) => offer.offer_country).filter(Boolean)));
+  const tierEligibleOffers = allFeedOffers.filter((offer) => offer.card_tier === displayCardType);
+  const availableCountries = Array.from(new Set(tierEligibleOffers.map((offer) => offer.offer_country).filter(Boolean)));
   const featuredCountry = resolveFeaturedCountry(
     availableCountries,
     affinityProfile?.countries ?? {},
     affinityProfile?.uid ?? displayName,
   );
   const featuredCountryOffers = featuredCountry
-    ? allFeedOffers.filter((offer) => offer.offer_country === featuredCountry)
+    ? tierEligibleOffers.filter((offer) => offer.offer_country === featuredCountry)
     : [];
-  const featuredCountryTierOffers = featuredCountryOffers.filter((offer) => offer.card_tier === displayCardType);
-  const featuredOfferPool = featuredCountryTierOffers.length >= 2 ? featuredCountryTierOffers : featuredCountryOffers;
-  const featuredOffers = [...featuredOfferPool]
-    .sort((a, b) => Number(b.min_spend) - Number(a.min_spend))
+  const featuredOffers = [...featuredCountryOffers]
+    .sort((a, b) => a.brand.localeCompare(b.brand))
     .slice(0, 3);
   const featuredCountryImage = getCountryHeroImage(featuredCountry || '', featuredCountryOffers);
 
@@ -331,16 +339,14 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Featured Country Offers */}
+      {/* Featured Offers */}
       <section className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop mb-24">
         <div className="grid lg:grid-cols-12 gap-8 items-stretch">
-          <div className="lg:col-span-6">
+          <div className="lg:col-span-7">
             <span className="font-sans text-xs font-bold text-secondary uppercase tracking-[0.3em] mb-3 block">Featured Offers</span>
-            <h2 className="text-3xl md:text-4xl text-primary mb-3">
-              {featuredCountry ? `${featuredCountry} Highlights` : 'Country Highlights'}
-            </h2>
+            <h2 className="text-3xl md:text-4xl text-primary mb-3">Featured Picks For Your {displayCardType} Card</h2>
             <p className="font-sans text-on-surface-variant mb-8 text-base leading-relaxed font-light">
-              Personalized by top country affinity. Explore standout offers and city-specific picks.
+              Personalized using your affinity profile, with city highlights for easier local discovery.
             </p>
             <div className="space-y-4">
               {featuredOffers.map((offer) => {
@@ -353,32 +359,32 @@ export default function Home() {
                     to={`/offers/${encodeURIComponent(offer.sku)}`}
                     className="group bg-white rounded-3xl border border-outline-variant/15 p-4 md:p-5 shadow-sm hover:shadow-xl hover:border-primary/20 transition-all block"
                   >
-                    <div className="flex items-center gap-4">
-                      <div className="w-16 h-16 rounded-2xl overflow-hidden shrink-0 shadow-md">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 sm:gap-5">
+                      <div className="h-44 sm:h-32 sm:w-52 rounded-2xl overflow-hidden shrink-0 shadow-md">
                         <img
                           src={offer.image_url}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                           alt={offer.brand}
                         />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-3 mb-1">
-                          <h4 className="font-sans text-base font-extrabold text-primary truncate group-hover:text-secondary transition-colors">
+                        <div className="flex items-center justify-between gap-3 mb-2">
+                          <h4 className="font-sans text-lg md:text-xl font-extrabold text-primary truncate group-hover:text-secondary transition-colors">
                             {offer.brand}
                           </h4>
                           <span className="text-[10px] font-black uppercase tracking-wider text-secondary bg-secondary/10 px-2.5 py-1 rounded-full shrink-0 flex items-center gap-1">
                             <MapPin size={11} /> {cityLabel}
                           </span>
                         </div>
-                        <p className="font-sans text-xs text-on-surface-variant leading-relaxed line-clamp-2 mb-2">
+                        <p className="font-sans text-sm text-on-surface-variant leading-relaxed line-clamp-2 mb-3">
                           {offer.name}
                         </p>
                         <div className="flex items-center justify-between gap-3">
-                          <span className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant/70">
+                          <span className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant/70 bg-surface-container px-2.5 py-1 rounded-full">
                             {categoryLabel}
                           </span>
-                          <span className="text-[10px] font-black uppercase tracking-widest text-primary">
-                            Min spend {offer.min_spend}
+                          <span className="text-[10px] font-black uppercase tracking-widest text-primary inline-flex items-center gap-1.5">
+                            View offer <ArrowRight size={11} />
                           </span>
                         </div>
                       </div>
@@ -389,13 +395,15 @@ export default function Home() {
 
               {featuredOffers.length === 0 && (
                 <div className="bg-white rounded-3xl border border-outline-variant/15 p-8 text-center">
-                  <p className="font-sans text-sm text-on-surface-variant">No featured offers available right now.</p>
+                  <p className="font-sans text-sm text-on-surface-variant">
+                    No eligible featured offers available for your current card tier right now.
+                  </p>
                 </div>
               )}
             </div>
           </div>
 
-          <div className="lg:col-span-6 relative rounded-[48px] overflow-hidden shadow-xl border-4 border-white min-h-[420px]">
+          <div className="lg:col-span-5 relative rounded-[48px] overflow-hidden shadow-xl border-4 border-white min-h-[420px]">
             <img
               className="w-full h-full object-cover"
               alt={featuredCountry ? `${featuredCountry} featured destination` : 'Featured destination'}
@@ -403,20 +411,9 @@ export default function Home() {
             />
             <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/20 to-transparent" />
             <div className="absolute bottom-0 left-0 right-0 p-8 md:p-10 text-white">
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.45, ease: 'easeOut' }}
-                className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm border border-white/25 rounded-full px-4 py-2 mb-4"
-              >
-                <Sparkles size={14} />
-                <span className="font-sans text-[10px] font-black uppercase tracking-wider">Top Country Affinity</span>
-              </motion.div>
-              <h3 className="text-3xl md:text-5xl font-black uppercase tracking-tight mb-3">
-                {featuredCountry || 'Featured Country'}
-              </h3>
+              <h3 className="text-2xl md:text-4xl font-black uppercase tracking-tight mb-3">Curated For You</h3>
               <p className="font-sans text-sm md:text-base text-white/85 max-w-md leading-relaxed mb-6">
-                Handpicked offers from your strongest country preference, with city-based highlights and curated premium value.
+                Regional signals shape these selections, while only offers eligible for your selected tier are shown.
               </p>
               <Link
                 to="/offers"
