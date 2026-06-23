@@ -74,6 +74,7 @@ export interface UserBarData {
 export interface UserAffinityProfile {
   uid: string;
   categories: Record<string, number>;
+  countries: Record<string, number>;
 }
 
 const STORAGE_KEYS = {
@@ -646,20 +647,29 @@ export async function fetchUserAffinities(): Promise<UserAffinityProfile | null>
 
     const body = await response.json();
     const rawCategories = body?.categories;
-
-    if (!rawCategories || typeof rawCategories !== 'object') {
-      return { uid, categories: {} };
-    }
+    const rawCountries = body?.countries;
 
     const categories: Record<string, number> = {};
-    for (const [key, value] of Object.entries(rawCategories as Record<string, unknown>)) {
-      const numericValue = Number(value);
-      if (Number.isFinite(numericValue)) {
-        categories[key] = numericValue;
+    if (rawCategories && typeof rawCategories === 'object') {
+      for (const [key, value] of Object.entries(rawCategories as Record<string, unknown>)) {
+        const numericValue = Number(value);
+        if (Number.isFinite(numericValue)) {
+          categories[key] = numericValue;
+        }
       }
     }
 
-    return { uid, categories };
+    const countries: Record<string, number> = {};
+    if (rawCountries && typeof rawCountries === 'object') {
+      for (const [key, value] of Object.entries(rawCountries as Record<string, unknown>)) {
+        const numericValue = Number(value);
+        if (Number.isFinite(numericValue)) {
+          countries[key] = numericValue;
+        }
+      }
+    }
+
+    return { uid, categories, countries };
   } catch {
     return null;
   }

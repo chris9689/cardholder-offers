@@ -43,8 +43,15 @@ export default async function handler(req, res) {
 
     const body = await response.json();
     const categories = body?.categories && typeof body.categories === 'object' ? body.categories : {};
+    const countriesSource =
+      (body?.offer_country && typeof body.offer_country === 'object' && body.offer_country) ||
+      (body?.offerCountry && typeof body.offerCountry === 'object' && body.offerCountry) ||
+      (body?.countries && typeof body.countries === 'object' && body.countries) ||
+      (body?.offerCountries && typeof body.offerCountries === 'object' && body.offerCountries) ||
+      (body?.countryAffinities && typeof body.countryAffinities === 'object' && body.countryAffinities) ||
+      {};
 
-    json(res, 200, { categories });
+    json(res, 200, { uid, categories, countries: countriesSource });
   } catch (error) {
     json(res, 500, { error: error instanceof Error ? error.message : 'Unexpected server error' });
   }

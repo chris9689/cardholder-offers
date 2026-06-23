@@ -5,14 +5,33 @@
 
 import { Grid, List, Search, Sparkles, X } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import DyOfferCard from '../components/DyOfferCard';
 import { useCard } from '../contexts/CardContext';
 import { getAllProducts } from '../lib/productFeed';
 import { DyRecommendationSlot, performDySearch } from '../lib/dyServerApi';
 
+const CATEGORY_LABELS: Record<string, string> = {
+  ARTSCULTURE: 'Arts & Culture',
+  CULINARY: 'Culinary',
+  ENTERTAINMENT: 'Entertainment',
+  SHOPPING: 'Shopping',
+  SPORTSWELLNESS: 'Sports & Wellness',
+  TRAVEL: 'Travel',
+};
+
+function normalizeCategoryKey(value: string): string {
+  return value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+}
+
 function toDisplayCategory(value: string): string {
   if (!value) {
     return 'Unknown';
+  }
+
+  const normalized = normalizeCategoryKey(value);
+  if (CATEGORY_LABELS[normalized]) {
+    return CATEGORY_LABELS[normalized];
   }
 
   return value
@@ -48,6 +67,7 @@ function toSlotFromFeed(product: ReturnType<typeof getAllProducts>[number]): DyR
 export default function Browse() {
   const { cardType, userVariables } = useCard();
   const selectedTier = userVariables?.cardType ?? cardType;
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [activeCategory, setActiveCategory] = useState('All');
   const [searchInput, setSearchInput] = useState('');
@@ -74,11 +94,30 @@ export default function Browse() {
     return ['All', ...Array.from(categories).sort((a, b) => a.localeCompare(b))];
   }, [tierFeedSlots]);
 
+  const categoryAliasMap = useMemo(() => {
+    const aliases = new Map<string, string>();
+    categoryOptions.forEach((category) => {
+      aliases.set(normalizeCategoryKey(category), category);
+      aliases.set(normalizeCategoryKey(toDisplayCategory(category)), category);
+    });
+    return aliases;
+  }, [categoryOptions]);
+
   useEffect(() => {
+    const requestedCategory = searchParams.get('category');
+    const mappedCategory = requestedCategory ? categoryAliasMap.get(normalizeCategoryKey(requestedCategory)) : undefined;
+
+    if (mappedCategory) {
+      if (activeCategory !== mappedCategory) {
+        setActiveCategory(mappedCategory);
+      }
+      return;
+    }
+
     if (!categoryOptions.includes(activeCategory)) {
       setActiveCategory('All');
     }
-  }, [activeCategory, categoryOptions]);
+  }, [activeCategory, categoryAliasMap, categoryOptions, searchParams]);
 
   const hasActiveSearch = activeQuery.trim().length > 0;
   const sourceSlots = hasActiveSearch ? searchResults ?? [] : tierFeedSlots;
@@ -122,6 +161,19 @@ export default function Browse() {
     setSearchResults(null);
   };
 
+  const handleCategorySelect = (category: string) => {
+    setActiveCategory(category);
+
+    const nextParams = new URLSearchParams(searchParams);
+    if (category === 'All') {
+      nextParams.delete('category');
+    } else {
+      nextParams.set('category', category);
+    }
+
+    setSearchParams(nextParams, { replace: true });
+  };
+
   return (
     <div className="pt-24 min-h-screen bg-surface">
       {/* Header - Reduced Height */}
@@ -145,7 +197,7 @@ export default function Browse() {
                 return (
                   <button
                     key={category}
-                    onClick={() => setActiveCategory(category)}
+                    onClick={() => handleCategorySelect(category)}
                     className={`px-4 py-2 rounded-xl border font-sans text-[10px] font-black uppercase tracking-widest transition-all ${
                       isActive
                         ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20'

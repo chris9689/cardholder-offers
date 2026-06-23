@@ -194,41 +194,48 @@ export const NEAR_ME_OFFERS: Offer[] = [
 ];
 
 export interface CuratedCategory {
-  name: 'Dining' | 'Travel' | 'Shopping' | 'Wellness' | 'Experiences' | 'Events';
+  name: 'Arts & Culture' | 'Culinary' | 'Entertainment' | 'Shopping' | 'Sports & Wellness' | 'Travel';
   image: string;
+  offerCategory: 'ARTSCULTURE' | 'CULINARY' | 'ENTERTAINMENT' | 'SHOPPING' | 'SPORTSWELLNESS' | 'TRAVEL';
   affinityKeys: string[];
 }
 
 export const CATEGORIES: CuratedCategory[] = [
   {
-    name: 'Dining',
-    image: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=900&q=80',
-    affinityKeys: ['DINING', 'FOODDINING', 'RESTAURANTS', 'FOOD'],
+    name: 'Arts & Culture',
+    image: 'https://images.unsplash.com/photo-1577083552431-6e5fd01aa342?auto=format&fit=crop&w=900&q=80',
+    offerCategory: 'ARTSCULTURE',
+    affinityKeys: ['ARTSCULTURE', 'ARTS', 'CULTURE'],
   },
   {
-    name: 'Travel',
-    image: 'https://images.unsplash.com/photo-1502920514313-52581002a659?auto=format&fit=crop&w=900&q=80',
-    affinityKeys: ['TRAVEL'],
+    name: 'Culinary',
+    image: 'https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?auto=format&fit=crop&w=900&q=80',
+    offerCategory: 'CULINARY',
+    affinityKeys: ['CULINARY', 'FOODDINING', 'DINING', 'RESTAURANTS'],
+  },
+  {
+    name: 'Entertainment',
+    image: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=900&q=80',
+    offerCategory: 'ENTERTAINMENT',
+    affinityKeys: ['ENTERTAINMENT', 'EVENTS', 'NIGHTLIFE', 'SHOWS'],
   },
   {
     name: 'Shopping',
-    image: 'https://images.unsplash.com/photo-1481437156560-3205f6a55735?auto=format&fit=crop&w=900&q=80',
+    image: 'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?auto=format&fit=crop&w=900&q=80',
+    offerCategory: 'SHOPPING',
     affinityKeys: ['SHOPPING', 'RETAIL'],
   },
   {
-    name: 'Wellness',
-    image: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=900&q=80',
-    affinityKeys: ['WELLNESS', 'HEALTH', 'FITNESS', 'SPORTS'],
+    name: 'Sports & Wellness',
+    image: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=900&q=80',
+    offerCategory: 'SPORTSWELLNESS',
+    affinityKeys: ['SPORTSWELLNESS', 'WELLNESS', 'HEALTH', 'FITNESS', 'SPORTS'],
   },
   {
-    name: 'Experiences',
-    image: 'https://images.unsplash.com/photo-1518998053901-5348d3961a04?auto=format&fit=crop&w=900&q=80',
-    affinityKeys: ['ARTSCULTURE', 'ARTS', 'CULTURE', 'EXPERIENCES'],
-  },
-  {
-    name: 'Events',
-    image: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=900&q=80',
-    affinityKeys: ['ENTERTAINMENT', 'EVENTS', 'NIGHTLIFE', 'SHOWS'],
+    name: 'Travel',
+    image: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=900&q=80',
+    offerCategory: 'TRAVEL',
+    affinityKeys: ['TRAVEL'],
   },
 ];
 
