@@ -23,7 +23,7 @@ export default function CuratedResults() {
   const [searchParams] = useSearchParams();
   const seedPrompt = searchParams.get('prompt') || '';
   const { pathname } = useLocation();
-  const { cardType, setIsAgentOpen } = useCard();
+  const { cardType, setIsAgentOpen, userVariables } = useCard();
 
   const [inputVal, setInputVal] = useState(seedPrompt);
   const [messages, setMessages] = useState<MuseMessage[]>([]);
@@ -45,7 +45,7 @@ export default function CuratedResults() {
     setIsLoading(true);
 
     try {
-      const result = await performShoppingMuse(prompt, pathname, cardType, chatId);
+      const result = await performShoppingMuse(prompt, pathname, cardType, chatId, userVariables);
 
       if (!result) {
         setMessages((prev) => [
@@ -97,6 +97,9 @@ export default function CuratedResults() {
 
   const latestAssistantMessage = [...messages].reverse().find((msg) => msg.role === 'assistant' && msg.result);
   const latestWidgets = latestAssistantMessage?.result?.widgets ?? [];
+  const displayName = userVariables?.name;
+  const displayPoints = userVariables?.points;
+  const displayTier = userVariables?.cardType ?? cardType;
 
   return (
     <div className="pt-24 min-h-screen bg-surface">
@@ -164,8 +167,17 @@ export default function CuratedResults() {
           <div className="lg:col-span-4 bg-white rounded-3xl border border-outline-variant/10 shadow-sm p-5 md:p-6 h-fit">
             <div className="flex items-center justify-between pb-4 border-b border-outline-variant/10">
               <span className="font-sans text-[10px] font-black uppercase tracking-widest text-secondary">Conversation</span>
-              <span className="font-sans text-[10px] font-black uppercase tracking-widest text-primary">{cardType} Card</span>
+              <span className="font-sans text-[10px] font-black uppercase tracking-widest text-primary">{displayTier} Card</span>
             </div>
+
+            {displayName && typeof displayPoints === 'number' && (
+              <div className="mt-4 rounded-2xl border border-outline-variant/10 bg-surface-container/30 px-4 py-3">
+                <p className="font-sans text-[10px] font-black uppercase tracking-widest text-on-surface-variant">{displayName}</p>
+                <p className="font-sans text-[10px] font-black uppercase tracking-widest text-primary mt-1">
+                  {displayTier} Status • {displayPoints.toLocaleString()} Points
+                </p>
+              </div>
+            )}
 
             <div className="mt-5 space-y-4 max-h-[560px] overflow-y-auto pr-1">
               {messages.length === 0 && (

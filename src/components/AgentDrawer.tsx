@@ -21,18 +21,21 @@ interface Message {
 }
 
 export default function AgentDrawer() {
-  const { isAgentOpen, setIsAgentOpen, cardType } = useCard();
+  const { isAgentOpen, setIsAgentOpen, cardType, userVariables } = useCard();
   const { pathname } = useLocation();
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [chatId, setChatId] = useState<string | undefined>(undefined);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  const displayName = userVariables?.name ?? USER.name;
+  const displayCardType = userVariables?.cardType ?? cardType;
+
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
       sender: 'agent',
-        text: `Welcome, ${USER.name.split(' ')[0]}. I am your Mastercard ${cardType} benefit assistant. Whether you are looking for dining perks, travel rewards, or statement credits, let me know what you have in mind and I will find the perfect offers for you.`,
+      text: `Welcome, ${displayName.split(' ')[0]}. I am your Mastercard ${displayCardType} offers assistant. Whether you are looking for dining perks, travel rewards, or cashback offers, let me know what you have in mind and I will find the perfect offers for you.`,
       timestamp: 'Just now',
     }
   ]);
@@ -44,6 +47,21 @@ export default function AgentDrawer() {
   useEffect(() => {
     scrollToBottom();
   }, [messages, isTyping, isAgentOpen]);
+
+  useEffect(() => {
+    setMessages((prev) => {
+      if (prev.length !== 1 || prev[0]?.id !== '1') {
+        return prev;
+      }
+
+      return [
+        {
+          ...prev[0],
+          text: `Welcome, ${displayName.split(' ')[0]}. I am your Mastercard ${displayCardType} benefit assistant. Whether you are looking for dining perks, travel rewards, or statement credits, let me know what you have in mind and I will find the perfect offers for you.`,
+        },
+      ];
+    });
+  }, [displayName, displayCardType]);
 
   const submitPrompt = async (rawPrompt: string) => {
     const userText = rawPrompt.trim();
@@ -63,7 +81,7 @@ export default function AgentDrawer() {
     setIsTyping(true);
 
     try {
-      const result = await performShoppingMuse(userText, pathname, cardType, chatId);
+      const result = await performShoppingMuse(userText, pathname, cardType, chatId, userVariables);
 
       if (!result) {
         setMessages(prev => [
@@ -148,7 +166,7 @@ export default function AgentDrawer() {
               </div>
               <div>
                 <h3 className="text-lg md:text-xl font-black uppercase tracking-wider">AI Assistant</h3>
-                <p className="text-[10px] font-bold text-secondary uppercase tracking-[0.2em]">{cardType} Card Specialist</p>
+                <p className="text-[10px] font-bold text-secondary uppercase tracking-[0.2em]">{displayCardType} Offers</p>
               </div>
             </div>
             
@@ -162,11 +180,8 @@ export default function AgentDrawer() {
 
           {/* Quick Stats Panel */}
           <div className="bg-surface-container/30 px-6 py-4 border-b border-outline-variant/10 flex items-center justify-between">
-              <span className="font-sans text-[10px] font-black tracking-widest text-on-surface-variant uppercase">Member Status: {USER.name}</span>
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-secondary" />
-              <span className="font-sans text-[10px] font-black uppercase tracking-widest text-primary">Connected</span>
-            </div>
+            <span className="font-sans text-[10px] font-black tracking-widest text-on-surface-variant uppercase">Member: {displayName}</span>
+            <span className="font-sans text-[10px] font-black tracking-widest text-on-surface-variant uppercase">Points: {userVariables?.points ?? 'N/A'}</span>
           </div>
 
           {/* Messages Log */}

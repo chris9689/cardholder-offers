@@ -65,6 +65,12 @@ export interface PdpChoiceResult {
   recsTitle: string;
 }
 
+export interface UserBarData {
+  name: string;
+  cardType: CardType;
+  points: number;
+}
+
 const STORAGE_KEYS = {
   dyid: ['_dyid', 'dyid'],
   dyidServer: ['_dyid_server', 'dyid_server'],
@@ -414,14 +420,9 @@ export async function performDySearch(
       args: values,
     }));
 
-  const payload: Record<string, unknown> = {
+  const payload = {
     user: identity.user,
     session: identity.session,
-    query: {
-      pagination: { numItems, offset },
-      text: query,
-      ...(filterConditions.length > 0 ? { filter: { conditions: filterConditions } } : {}),
-    },
     context: {
       page: {
         type: recommendationContext.type,
@@ -439,7 +440,13 @@ export async function performDySearch(
     selector: {
       name: 'Semantic Search',
     },
+    query: {
+      text: query,
+      ...(filterConditions.length > 0 ? { conditions: filterConditions } : {}),
+    },
     options: {
+      offset,
+      numItems,
       returnAnalyticsMetadata: false,
       isImplicitClientData: false,
     },
@@ -488,6 +495,7 @@ export async function performShoppingMuse(
   pathname: string,
   cardType: CardType,
   chatId?: string,
+  userVariables?: UserBarData | null,
 ): Promise<DyShoppingMuseResult | null> {
   if (!prompt.trim()) {
     return null;
@@ -497,6 +505,19 @@ export async function performShoppingMuse(
 
   const payload: Record<string, unknown> = {
     ...basePayload,
+    context: {
+      ...basePayload.context,
+      pageAttributes: {
+        ...basePayload.context.pageAttributes,
+        ...(userVariables
+          ? {
+              user_name: userVariables.name,
+              user_card_tier: userVariables.cardType,
+              user_points: userVariables.points,
+            }
+          : {}),
+      },
+    },
     query: {
       text: prompt,
       ...(chatId ? { chatId } : {}),
@@ -536,4 +557,44 @@ export async function performShoppingMuse(
     chatId: typeof data.chatId === 'string' ? data.chatId : undefined,
     widgets: Array.isArray(data.widgets) ? data.widgets : [],
   };
+}
+
+export async function chooseUserBar(pathname: string, cardType: CardType): Promise<UserBarData | null> {
+  const payload = {
+    ...buildBasePayload(pathname, cardType),
+    selector: {
+      names: ['User Status Bar API'],
+    },
+    options: {
+      isImplicitPageview: false,
+      returnAnalyticsMetadata: false,
+      isImplicitImpressionMode: true,
+      isImplicitClientData: false,
+    },
+  };
+
+  try {
+    const response = await fetch('/api/dy/choose', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload),
+      credentials: 'same-origin',
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const body = await response.json();
+    applyReturnedCookies(body?.cookies);
+
+    const payloadData = body?.choices?.[0]?.variations?.[0]?.payload?.data?.userBar;
+    if (!payloadData || typeof payloadData !== 'object') {
+      return null;
+    }
+
+    return payloadData as UserBarData;
+  } catch {
+    return null;
+  }
 }

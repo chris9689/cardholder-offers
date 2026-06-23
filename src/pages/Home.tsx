@@ -15,7 +15,7 @@ import CategoryCard from '../components/CategoryCard';
 import { OFFERS, NEAR_ME_OFFERS, CATEGORIES, getOfferRouteToken } from '../data/offers';
 import { useCard } from '../contexts/CardContext';
 import { USER } from '../config';
-import { chooseHomepageGroup, HomepageChoiceResult } from '../lib/dyServerApi';
+import { chooseHomepageGroup, HomepageChoiceResult, chooseUserBar } from '../lib/dyServerApi';
 
 const SUGGESTED_PROMPTS = [
   { label: 'Hotel upgrades & custom stays', text: 'Hotel upgrades and VIP luxury stays' },
@@ -24,7 +24,7 @@ const SUGGESTED_PROMPTS = [
 ];
 
 export default function Home() {
-  const { cardType, points } = useCard();
+  const { cardType, points, userVariables, setUserVariables } = useCard();
   const { pathname } = useLocation();
   const [homepageData, setHomepageData] = useState<HomepageChoiceResult | null>(null);
   const [recsPage, setRecsPage] = useState(0);
@@ -54,6 +54,27 @@ export default function Home() {
   const recsTitle = homepageData?.recsTitle ?? 'Your Exclusive Offers';
   const recsSubtitle = homepageData?.recsSubtitle ?? 'Personalized Picks';
 
+  useEffect(() => {
+    let isMounted = true;
+
+    const load = async () => {
+      const data = await chooseUserBar(pathname, cardType);
+      if (isMounted) {
+        setUserVariables(data);
+      }
+    };
+
+    void load();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [pathname, cardType, setUserVariables]);
+
+  const displayName = userVariables?.name ?? USER.name;
+  const displayCardType = userVariables?.cardType ?? cardType;
+  const displayPoints = userVariables?.points ?? points;
+
   return (
     <div className="flex flex-col w-full pt-16">
       {/* User Info Bar - Moved above Hero */}
@@ -61,16 +82,16 @@ export default function Home() {
         <div className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 md:gap-8">
             <div className="bg-primary text-white px-4 py-1.5 rounded-full flex items-center gap-2">
-                <h2 className="font-sans text-[10px] font-black tracking-[0.2em] uppercase">Welcome, {USER.name}</h2>
+              <h2 className="font-sans text-[10px] font-black tracking-[0.2em] uppercase">Welcome, {displayName}</h2>
             </div>
             <div className="hidden md:block w-px h-3 bg-outline-variant/30" />
             <p className="font-sans text-[10px] font-black text-on-surface-variant flex items-center gap-2 uppercase tracking-[0.2em]">
-              <span className={`w-2 h-2 rounded-full ${cardType === 'Black' ? 'bg-primary shadow-[0_0_8px_rgba(0,0,0,0.3)]' : cardType === 'Premium' ? 'bg-secondary' : 'bg-outline'}`} />
-              {cardType} Elite Status • {points.toLocaleString()} Points
+              <span className={`w-2 h-2 rounded-full ${displayCardType === 'Black' ? 'bg-primary shadow-[0_0_8px_rgba(0,0,0,0.3)]' : displayCardType === 'Premium' ? 'bg-secondary' : 'bg-outline'}`} />
+              {displayCardType} Status • {displayPoints.toLocaleString()} Points
             </p>
           </div>
           <Link to="/offers" className="flex items-center gap-1.5 text-secondary font-sans text-[10px] font-black uppercase tracking-[0.2em] group">
-            Redeem points
+            Explore Offers
             <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
@@ -89,7 +110,6 @@ export default function Home() {
               to={`/curated?prompt=${encodeURIComponent(prompt.text)}`}
               className="inline-flex items-center justify-center md:justify-start gap-1.5 bg-white text-primary border border-outline-variant/10 hover:border-secondary hover:bg-secondary/5 px-4 py-3 md:py-2.5 rounded-xl font-sans text-[10px] font-black uppercase tracking-wider transition-all shadow-sm text-center md:text-left"
             >
-              <Sparkles size={12} className="text-secondary animate-pulse shrink-0" />
               {prompt.label}
             </Link>
           ))}
