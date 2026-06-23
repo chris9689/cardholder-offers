@@ -87,6 +87,19 @@ export function CardProvider({ children }: { children: ReactNode }) {
   }, [cardType]);
 
   useEffect(() => {
+    setUserVariables((prev) => {
+      if (!prev || prev.cardType === cardType) {
+        return prev;
+      }
+
+      return {
+        ...prev,
+        cardType,
+      };
+    });
+  }, [cardType]);
+
+  useEffect(() => {
     if (typeof window === 'undefined') {
       return;
     }

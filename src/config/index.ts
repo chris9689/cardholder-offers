@@ -18,7 +18,7 @@ export const BRAND = {
 export const USER = {
   name: 'Julian Anderson',
   initialPoints: 125400,
-  defaultCardType: 'Black' as 'Standard' | 'Premium' | 'Black',
+  defaultCardType: 'Standard' as 'Standard' | 'Premium' | 'Black',
 } as const;
 
 // Theme

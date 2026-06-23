@@ -181,6 +181,12 @@ function buildBasePayload(pathname: string, cardType: CardType) {
       },
       pageAttributes: {
         tier: cardType,
+        card_tier: cardType,
+        selected_tier: cardType,
+      },
+      customAttributes: {
+        tier: cardType,
+        card_tier: cardType,
       },
     },
   };
@@ -512,7 +518,7 @@ export async function performShoppingMuse(
         ...(userVariables
           ? {
               user_name: userVariables.name,
-              user_card_tier: userVariables.cardType,
+              user_card_tier: cardType,
               user_points: userVariables.points,
             }
           : {}),
@@ -593,7 +599,21 @@ export async function chooseUserBar(pathname: string, cardType: CardType): Promi
       return null;
     }
 
-    return payloadData as UserBarData;
+    const data = payloadData as {
+      name?: unknown;
+      cardType?: unknown;
+      points?: unknown;
+    };
+
+    const normalizedName = typeof data.name === 'string' && data.name.trim().length > 0 ? data.name.trim() : null;
+    const normalizedPointsRaw = typeof data.points === 'number' ? data.points : Number(data.points);
+    const normalizedPoints = Number.isFinite(normalizedPointsRaw) ? normalizedPointsRaw : 0;
+    return {
+      name: normalizedName ?? 'Cardholder',
+      // Keep selected tier as source of truth to prevent stale/incorrect API cardType from overriding UI state.
+      cardType,
+      points: normalizedPoints,
+    };
   } catch {
     return null;
   }
