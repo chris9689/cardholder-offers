@@ -110,17 +110,17 @@ export default function CuratedResults() {
             to="/"
             className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-secondary mb-6 hover:text-primary transition-colors"
           >
-            <ChevronLeft size={14} /> Back to curated home
+            <ChevronLeft size={14} /> Back to home
           </Link>
 
           <span className="font-sans text-[10px] font-black text-secondary uppercase tracking-[0.4em] mb-4 block">
-            Shopping Muse
+            AI Assistant
           </span>
           <h1 className="text-4xl md:text-5xl text-primary font-black mb-4 tracking-tighter uppercase not-italic">
-            AI Curated Recommendations
+            Curated Recommendations
           </h1>
           <p className="font-sans text-on-surface-variant text-base max-w-2xl font-light leading-relaxed opacity-70">
-            Ask in natural language and get cardholder offers with product-card recommendations.
+            Ask in natural language and get cardholder offers matching your needs.
           </p>
 
           <form
@@ -168,7 +168,7 @@ export default function CuratedResults() {
           <div className="lg:col-span-4 bg-white rounded-3xl border border-outline-variant/10 shadow-sm p-5 md:p-6 h-fit">
             <div className="flex items-center justify-between pb-4 border-b border-outline-variant/10">
               <span className="font-sans text-[10px] font-black uppercase tracking-widest text-secondary">Conversation</span>
-              <span className="font-sans text-[10px] font-black uppercase tracking-widest text-primary">{displayTier} Card</span>
+              <span className="font-sans text-[10px] font-black uppercase tracking-widest text-primary">{displayTier}</span>
             </div>
 
             {displayName && typeof displayPoints === 'number' && (
@@ -214,7 +214,7 @@ export default function CuratedResults() {
               {isLoading && (
                 <div className="flex items-center gap-2 text-on-surface-variant/70 text-xs font-sans">
                   <Sparkles size={12} className="text-secondary animate-pulse" />
-                  Shopping Muse is generating recommendations...
+                  AI Assistant is generating recommendations...
                 </div>
               )}
             </div>
@@ -242,7 +242,7 @@ export default function CuratedResults() {
                 </div>
                 <h4 className="text-lg font-black uppercase text-primary mb-2">No widget recommendations yet</h4>
                 <p className="font-sans text-xs text-on-surface-variant leading-relaxed opacity-70 mb-8">
-                  Ask Shopping Muse for offers by intent, category, country, or card tier.
+                  Ask the AI Assistant for offers by intent, category, or country.
                 </p>
               </div>
             ) : (
@@ -274,7 +274,7 @@ export default function CuratedResults() {
         {latestAssistantMessage?.result?.support === false && (
           <div className="mt-8 text-center">
             <p className="font-sans text-xs text-on-surface-variant opacity-70 mb-3">
-              Muse support fallback is disabled for this answer.
+              If the AI Assistant was unable to find any relevant recommendations for you, try asking a different question or go to the search page to browse all offers.
             </p>
             <Link
               to="/search"
