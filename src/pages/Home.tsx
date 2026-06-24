@@ -411,10 +411,8 @@ export default function Home() {
             />
             <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/20 to-transparent" />
             <div className="absolute bottom-0 left-0 right-0 p-8 md:p-10 text-white">
-              <h3 className="text-2xl md:text-4xl font-black uppercase tracking-tight mb-3">Curated For You</h3>
-              <p className="font-sans text-sm md:text-base text-white/85 max-w-md leading-relaxed mb-6">
-                Regional signals shape these selections, while only offers eligible for your selected tier are shown.
-              </p>
+              <h3 className="text-2xl md:text-4xl font-black uppercase tracking-tight mb-3">{featuredCountry}</h3>
+              
               <Link
                 to="/offers"
                 className="inline-flex items-center gap-2 bg-white text-primary hover:bg-secondary hover:text-white px-5 py-3 rounded-xl font-sans text-[10px] font-black uppercase tracking-widest transition-all"
@@ -422,59 +420,6 @@ export default function Home() {
                 Browse All Offers <ArrowRight size={12} />
               </Link>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Philosophy Section */}
-      <section className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop py-20 text-center">
-        <span className="font-sans text-xs font-bold text-secondary uppercase tracking-[0.4em] mb-5 block">The Premier Philosophy</span>
-        <h2 className="text-4xl md:text-7xl mb-10 max-w-4xl mx-auto leading-[0.95] font-black uppercase tracking-tighter not-italic">
-          More than a card. <br /> A world of ease.
-        </h2>
-        
-        <div className="grid md:grid-cols-3 gap-16 mt-20">
-          <div className="flex flex-col items-center">
-            <div className="w-16 h-16 rounded-2xl bg-secondary-fixed/30 flex items-center justify-center text-secondary mb-6 shadow-sm">
-              <Diamond size={32} />
-            </div>
-            <h3 className="text-lg font-black uppercase tracking-wide mb-3">Elite Perks</h3>
-            <p className="font-sans text-on-surface-variant text-sm leading-loose font-medium opacity-60 max-w-[280px]">
-              As a {cardType} member, you gain access to private airport lounges and luxury hotel upgrades.
-            </p>
-          </div>
-          <div className="flex flex-col items-center">
-             <div className="w-16 h-16 rounded-2xl bg-secondary-fixed/30 flex items-center justify-center text-secondary mb-6 shadow-sm">
-              <Wallet size={32} />
-            </div>
-            <h3 className="text-lg font-black uppercase tracking-wide mb-3">Intelligent Earning</h3>
-            <p className="font-sans text-on-surface-variant text-sm leading-loose font-medium opacity-60 max-w-[280px]">
-              Earn 5x points on all travel and dining. Your points never expire and transfer instantly.
-            </p>
-          </div>
-          <div className="flex flex-col items-center">
-             <div className="w-16 h-16 rounded-2xl bg-secondary-fixed/30 flex items-center justify-center text-secondary mb-6 shadow-sm">
-              <ShieldCheck size={32} />
-            </div>
-            <h3 className="text-lg font-black uppercase tracking-wide mb-3">Total Security</h3>
-            <p className="font-sans text-on-surface-variant text-sm leading-loose font-medium opacity-60 max-w-[280px]">
-              Advanced fraud protection and purchase insurance mean you can shop with total confidence.
-            </p>
-          </div>
-        </div>
-
-        {/* Call to Action */}
-        <div className="mt-24 bg-primary-container rounded-[64px] p-10 md:p-20 text-white overflow-hidden relative group">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-secondary/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-2000" />
-          <div className="relative z-10 flex flex-col items-center">
-            <h3 className="text-4xl md:text-7xl mb-6 leading-[0.9] font-black uppercase tracking-tighter not-italic">Unrivaled <br /> Experience.</h3>
-            <p className="font-sans text-base md:text-lg opacity-60 max-w-xl mb-10 font-medium leading-relaxed">
-              Discover why 98% of our members choose to stay with us for a lifetime.
-            </p>
-            <button className="bg-secondary text-white px-12 py-5 rounded-full font-sans text-xs font-black uppercase tracking-[0.2em] hover:bg-secondary/80 hover:scale-105 active:scale-95 transition-all shadow-[0_20px_50px_rgba(119,90,25,0.4)] flex items-center gap-3">
-              Join the Elite
-              <ArrowRight size={16} />
-            </button>
           </div>
         </div>
       </section>
