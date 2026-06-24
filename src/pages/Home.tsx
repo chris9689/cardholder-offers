@@ -19,11 +19,11 @@ import { getAllProducts } from '../lib/productFeed';
 import { chooseHomepageGroup, fetchUserAffinities, HomepageChoiceResult, UserAffinityProfile, chooseUserBar } from '../lib/dyServerApi';
 
 const COUNTRY_HERO_IMAGES: Record<string, string> = {
-  FRANCE: 'https://images.unsplash.com/photo-1502602898536-47ad22581b52?auto=format&fit=crop&w=1400&q=80',
-  SPAIN: 'https://images.unsplash.com/photo-1525716483401-5bcbad7fc13f?auto=format&fit=crop&w=1400&q=80',
-  ITALY: 'https://images.unsplash.com/photo-1514890547357-a9ee288728e0?auto=format&fit=crop&w=1400&q=80',
-  UNITEDSTATES: 'https://images.unsplash.com/photo-1534430480872-3498386e7856?auto=format&fit=crop&w=1400&q=80',
-  UNITEDARABEMIRATES: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1400&q=80',
+  FRANCE: 'https://cdn.dynamicyield.com/api/8794982/images/ef16470f5fd7.webp',
+  SPAIN: 'https://cdn.dynamicyield.com/api/8794982/images/b234664359c3.webp',
+  ITALY: 'https://cdn.dynamicyield.com/api/8794982/images/1eeca095338b.webp',
+  UNITEDSTATES: 'https://cdn.dynamicyield.com/api/8794982/images/fdc0f1380271.webp',
+  UNITEDARABEMIRATES: 'https://cdn.dynamicyield.com/api/8794982/images/81cda98ab817.webp',
 };
 
 const CITY_CODE_LABELS: Record<string, string> = {
@@ -344,9 +344,9 @@ export default function Home() {
         <div className="grid lg:grid-cols-12 gap-8 items-stretch">
           <div className="lg:col-span-7">
             <span className="font-sans text-xs font-bold text-secondary uppercase tracking-[0.3em] mb-3 block">Featured Offers</span>
-            <h2 className="text-3xl md:text-4xl text-primary mb-3">Featured Picks For Your {displayCardType} Card</h2>
+            <h2 className="text-3xl md:text-4xl text-primary mb-3">Explore Offers In {featuredCountry}</h2>
             <p className="font-sans text-on-surface-variant mb-8 text-base leading-relaxed font-light">
-              Personalized using your affinity profile, with city highlights for easier local discovery.
+              
             </p>
             <div className="space-y-4">
               {featuredOffers.map((offer) => {
