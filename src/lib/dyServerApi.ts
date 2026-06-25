@@ -454,11 +454,13 @@ export async function performDySearch(
     },
     query: {
       text: query,
+      pagination: {
+        offset,
+        numItems,
+      },
       ...(filterConditions.length > 0 ? { conditions: filterConditions } : {}),
     },
     options: {
-      offset,
-      numItems,
       returnAnalyticsMetadata: false,
       isImplicitClientData: false,
     },
