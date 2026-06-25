@@ -69,16 +69,17 @@ const TIER_ACCOUNT_MOCKS: Record<CardType, TierAccountMock> = {
       { merchant: 'United First Class', date: 'Jun 18, 2026', amount: '$950.00', reward: 'Activated Offer' },
       { merchant: 'Luxury Spa & Wellness', date: 'Jun 14, 2026', amount: '$680.50', reward: 'Activated Offer' },
     ],
-  
+  },
+};
 
 const TIER_SAVINGS_MOCKS: Record<CardType, SavingsTransaction[]> = {
   Standard: [
     { sku: 'ret-001', merchant: 'Walmart', date: 'Jun 22, 2026', amount: 4.57 },
-
-  const displayName = userVariables?.name ?? USER.name;
-  const displayTier = userVariables?.cardType ?? cardType;
-  const tierSavings = TIER_SAVINGS_MOCKS[displayTier] ?? TIER_SAVINGS_MOCKS.Standard;
-  const totalSaved = tierSaving
+    { sku: 'phm-001', merchant: 'CVS Pharmacy', date: 'Jun 20, 2026', amount: 2.83 },
+    { sku: 'gro-001', merchant: 'Costco', date: 'Jun 18, 2026', amount: 10.25 },
+    { sku: 'gas-001', merchant: 'Shell Gas Station', date: 'Jun 15, 2026', amount: 5.50 },
+    { sku: 'food-001', merchant: 'McDonald\'s', date: 'Jun 12, 2026', amount: 3.40 },
+  ],
   Premium: [
     { sku: 'hot-001', merchant: 'Marriott Hotel', date: 'Jun 20, 2026', amount: 38.55 },
     { sku: 'air-001', merchant: 'Delta Airlines', date: 'Jun 16, 2026', amount: 42.58 },
@@ -96,16 +97,15 @@ const TIER_SAVINGS_MOCKS: Record<CardType, SavingsTransaction[]> = {
     { sku: 'trav-001', merchant: 'Private Travel Club', date: 'Jun 01, 2026', amount: 225.00 },
     { sku: 'exp-001', merchant: 'Exclusive Events', date: 'May 28, 2026', amount: 289.70 },
   ],
-};},
 };
 
 export default function Account() {
   const { cardType, userVariables } = useCard();
-  const { savingsTransactions } = useSession();
 
   const displayName = userVariables?.name ?? USER.name;
   const displayTier = userVariables?.cardType ?? cardType;
-  const totalSaved = savingsTransactions.reduce((sum, t) => sum + t.amount, 0);
+  const tierSavings = TIER_SAVINGS_MOCKS[displayTier] ?? TIER_SAVINGS_MOCKS.Standard;
+  const totalSaved = tierSavings.reduce((sum, t) => sum + t.amount, 0);
 
   const tierData = TIER_ACCOUNT_MOCKS[displayTier] ?? DEFAULT_TIER_MOCK;
   const activities = tierData.activities?.length > 0 ? tierData.activities : DEFAULT_ACTIVITIES;
