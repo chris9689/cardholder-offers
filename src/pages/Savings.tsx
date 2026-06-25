@@ -9,14 +9,44 @@ import { ChevronLeft, TrendingUp, Gift, ArrowUpRight, Zap } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useSession } from '../contexts/SessionContext';
 import { useCard } from '../contexts/CardContext';
+import { CardType } from '../contexts/CardContext';
+import { SavingsTransaction } from '../contexts/SessionContext';
+
+const TIER_SAVINGS_MOCKS: Record<CardType, SavingsTransaction[]> = {
+  Standard: [
+    { sku: 'ret-001', merchant: 'Walmart', date: 'Jun 22, 2026', amount: 4.57 },
+    { sku: 'phm-001', merchant: 'CVS Pharmacy', date: 'Jun 20, 2026', amount: 2.83 },
+    { sku: 'gro-001', merchant: 'Costco', date: 'Jun 18, 2026', amount: 10.25 },
+    { sku: 'gas-001', merchant: 'Shell Gas Station', date: 'Jun 15, 2026', amount: 5.50 },
+    { sku: 'food-001', merchant: 'McDonald\'s', date: 'Jun 12, 2026', amount: 3.40 },
+  ],
+  Premium: [
+    { sku: 'hot-001', merchant: 'Marriott Hotel', date: 'Jun 20, 2026', amount: 38.55 },
+    { sku: 'air-001', merchant: 'Delta Airlines', date: 'Jun 16, 2026', amount: 42.58 },
+    { sku: 'rst-001', merchant: 'Ruth\'s Chris Steakhouse', date: 'Jun 12, 2026', amount: 18.99 },
+    { sku: 'spa-001', merchant: 'Canyon Ranch Spa', date: 'Jun 08, 2026', amount: 50.25 },
+    { sku: 'res-001', merchant: 'The Ritz-Carlton', date: 'Jun 04, 2026', amount: 89.50 },
+    { sku: 'car-001', merchant: 'Premium Car Rental', date: 'May 31, 2026', amount: 62.37 },
+  ],
+  Black: [
+    { sku: 'hyp-001', merchant: 'Park Hyatt Resort', date: 'Jun 21, 2026', amount: 89.50 },
+    { sku: 'air-001', merchant: 'United First Class', date: 'Jun 18, 2026', amount: 95.00 },
+    { sku: 'spa-001', merchant: 'Luxury Spa & Wellness', date: 'Jun 14, 2026', amount: 68.05 },
+    { sku: 'con-001', merchant: 'Concierge Services', date: 'Jun 10, 2026', amount: 125.75 },
+    { sku: 'res-001', merchant: 'Nobu Restaurants', date: 'Jun 06, 2026', amount: 187.50 },
+    { sku: 'trav-001', merchant: 'Private Travel Club', date: 'Jun 01, 2026', amount: 225.00 },
+    { sku: 'exp-001', merchant: 'Exclusive Events', date: 'May 28, 2026', amount: 289.70 },
+  ],
+};
 
 export default function Savings() {
   const navigate = useNavigate();
-  const { savingsTransactions, activatedOffers } = useSession();
+  const { activatedOffers } = useSession();
   const { cardType, userVariables } = useCard();
 
   const displayTier = userVariables?.cardType ?? cardType;
-  const totalSaved = savingsTransactions.reduce((sum, t) => sum + t.amount, 0);
+  const tierSavings = TIER_SAVINGS_MOCKS[displayTier] ?? TIER_SAVINGS_MOCKS.Standard;
+  const totalSaved = tierSavings.reduce((sum, t) => sum + t.amount, 0);
   const usedOffers = activatedOffers.size;
 
   return (
@@ -64,7 +94,7 @@ export default function Savings() {
             </div>
             <div className="mt-8 pt-8 border-t border-green-200/30">
               <p className="text-xs font-bold text-green-700/70 uppercase tracking-widest">
-                From {savingsTransactions.length} transaction{savingsTransactions.length !== 1 ? 's' : ''}
+                From {tierSavings.length} transaction{tierSavings.length !== 1 ? 's' : ''}
               </p>
             </div>
           </motion.div>
@@ -99,7 +129,7 @@ export default function Savings() {
       <section className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop py-12">
         <h2 className="text-3xl text-primary font-black mb-8">Recent Transactions</h2>
 
-        {savingsTransactions.length === 0 ? (
+        {tierSavings.length === 0 ? (
           <div className="bg-white rounded-4xl p-16 text-center border border-outline-variant/10 shadow-sm">
             <Zap size={48} className="mx-auto mb-4 text-on-surface-variant/30" />
             <h3 className="text-xl font-black text-primary mb-2">No Savings Yet</h3>
@@ -114,7 +144,7 @@ export default function Savings() {
           </div>
         ) : (
           <div className="bg-white rounded-4xl overflow-hidden shadow-sm border border-outline-variant/10 divide-y divide-outline-variant/10">
-            {savingsTransactions.map((transaction, index) => (
+            {tierSavings.map((transaction, index) => (
               <motion.div
                 key={`${transaction.sku}-${index}`}
                 initial={{ opacity: 0, x: -20 }}
