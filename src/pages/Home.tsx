@@ -11,6 +11,7 @@ import SearchFilters from '../components/SearchFilters';
 import OfferCard from '../components/OfferCard';
 import DyOfferCard from '../components/DyOfferCard';
 import CategoryCard from '../components/CategoryCard';
+import { SkeletonOfferCard, SkeletonCategoryCard, SkeletonFeaturedOffer } from '../components/SkeletonCard';
 import { OFFERS, CATEGORIES, CuratedCategory, rankCuratedCategories } from '../data/offers';
 import { useCard } from '../contexts/CardContext';
 import { USER } from '../config';
@@ -127,6 +128,9 @@ export default function Home() {
   const { cardType, userVariables, setUserVariables } = useCard();
   const { pathname } = useLocation();
   const [homepageData, setHomepageData] = useState<HomepageChoiceResult | null>(null);
+  const [isLoadingHomepage, setIsLoadingHomepage] = useState(true);
+  const [isLoadingUserBar, setIsLoadingUserBar] = useState(true);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(true);
   const [recsPage, setRecsPage] = useState(0);
   const [curatedCategories, setCuratedCategories] = useState<CuratedCategory[]>(CATEGORIES);
   const [affinityProfile, setAffinityProfile] = useState<UserAffinityProfile | null>(null);
@@ -139,6 +143,7 @@ export default function Home() {
       if (isMounted) {
         setHomepageData(result);
         setRecsPage(0);
+        setIsLoadingHomepage(false);
       }
     };
 
@@ -163,6 +168,7 @@ export default function Home() {
       const data = await chooseUserBar(pathname, cardType);
       if (isMounted) {
         setUserVariables(data);
+        setIsLoadingUserBar(false);
       }
     };
 
@@ -182,6 +188,7 @@ export default function Home() {
       if (isMounted) {
         setAffinityProfile(affinityProfile);
         setCuratedCategories(ranked);
+        setIsLoadingCategories(false);
       }
     };
 
@@ -284,7 +291,9 @@ export default function Home() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {visibleSlots.length > 0
+          {isLoadingHomepage
+            ? [...Array(9)].map((_, i) => <SkeletonOfferCard key={`skeleton-${i}`} />)
+            : visibleSlots.length > 0
             ? visibleSlots.map((slot) => (
                 <DyOfferCard key={slot.sku} slot={slot} />
               ))
@@ -331,9 +340,11 @@ export default function Home() {
           </div>
           
           <div className="grid grid-cols-2 lg:grid-cols-6 gap-8">
-            {curatedCategories.map(cat => (
-              <CategoryCard key={cat.name} {...cat} href={`/offers?category=${encodeURIComponent(cat.offerCategory)}`} />
-            ))}
+            {isLoadingCategories
+              ? [...Array(6)].map((_, i) => <SkeletonCategoryCard key={`skeleton-cat-${i}`} />)
+              : curatedCategories.map(cat => (
+                  <CategoryCard key={cat.name} {...cat} href={`/offers?category=${encodeURIComponent(cat.offerCategory)}`} />
+                ))}
           </div>
         </div>
       </section>
@@ -348,7 +359,9 @@ export default function Home() {
               
             </p>
             <div className="space-y-4">
-              {featuredOffers.map((offer) => {
+              {isLoadingCategories
+                ? [...Array(3)].map((_, i) => <SkeletonFeaturedOffer key={`skeleton-featured-${i}`} />)
+                : featuredOffers.map((offer) => {
                 const cityLabel = getCityFromSku(offer.sku);
                 const categoryLabel = CATEGORY_NAME_BY_KEY[offer.categories] || offer.categories;
 
@@ -391,6 +404,7 @@ export default function Home() {
                   </Link>
                 );
               })}
+              )}
 
               {featuredOffers.length === 0 && (
                 <div className="bg-white rounded-3xl border border-outline-variant/15 p-8 text-center">

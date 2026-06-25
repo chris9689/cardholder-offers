@@ -175,7 +175,7 @@ export default function CuratedResults() {
               <div className="mt-4 rounded-2xl border border-outline-variant/10 bg-surface-container/30 px-4 py-3">
                 <p className="font-sans text-[10px] font-black uppercase tracking-widest text-on-surface-variant">{displayName}</p>
                 <p className="font-sans text-[10px] font-black uppercase tracking-widest text-primary mt-1">
-                  {displayTier} Status • {displayPoints.toLocaleString()} Points
+                  {displayTier} Status
                 </p>
               </div>
             )}
@@ -235,7 +235,7 @@ export default function CuratedResults() {
               </button>
             </div>
 
-            {latestWidgets.length === 0 ? (
+            {latestWidgets.length === 0 && !isLoading ? (
               <div className="text-center py-20 bg-white/50 border border-dashed border-outline-variant/30 rounded-4xl max-w-xl mx-auto px-8">
                 <div className="w-16 h-16 rounded-full bg-surface-container mx-auto flex items-center justify-center text-on-surface-variant mb-6">
                   <Sparkles size={28} className="opacity-45" />
@@ -244,6 +244,24 @@ export default function CuratedResults() {
                 <p className="font-sans text-xs text-on-surface-variant leading-relaxed opacity-70 mb-8">
                   Ask the AI Assistant for offers by intent, category, or country.
                 </p>
+              </div>
+            ) : latestWidgets.length === 0 && isLoading ? (
+              <div className="space-y-10">
+                {[...Array(3)].map((_, widgetIdx) => (
+                  <div key={`skeleton-widget-${widgetIdx}`}>
+                    <div className="h-8 bg-surface-container/50 rounded-lg mb-5 w-48 animate-pulse" />
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+                      {[...Array(3)].map((_, slotIdx) => (
+                        <div key={`skeleton-card-${slotIdx}`} className="bg-white rounded-2xl border border-outline-variant/10 p-4 animate-pulse">
+                          <div className="h-40 bg-surface-container/50 rounded-xl mb-4" />
+                          <div className="h-4 bg-surface-container/50 rounded mb-3" />
+                          <div className="h-4 bg-surface-container/50 rounded mb-4 w-5/6" />
+                          <div className="h-10 bg-surface-container/50 rounded-lg" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : (
               <div className="space-y-10">

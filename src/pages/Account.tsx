@@ -26,9 +26,9 @@ interface TierAccountMock {
 }
 
 const DEFAULT_ACTIVITIES: ActivityItem[] = [
-  { merchant: '7-Eleven', date: 'May 12, 2026', amount: '$24.50', reward: '+$2.45 Cashback' },
-  { merchant: 'Le Bernardin', date: 'May 10, 2026', amount: '$450.00', reward: '+2,250 Points' },
-  { merchant: 'Matsumoto KiYoshi', date: 'May 05, 2026', amount: '$85.20', reward: '+$8.52 Cashback' },
+  { merchant: 'Walmart', date: 'Jun 22, 2026', amount: '$45.67', reward: '+$4.57 Cashback' },
+  { merchant: 'CVS Pharmacy', date: 'Jun 19, 2026', amount: '$28.34', reward: '+$2.83 Cashback' },
+  { merchant: 'Costco', date: 'Jun 15, 2026', amount: '$102.50', reward: '+$10.25 Cashback' },
 ];
 
 const DEFAULT_TIER_MOCK: TierAccountMock = {
@@ -44,9 +44,9 @@ const TIER_ACCOUNT_MOCKS: Record<CardType, TierAccountMock> = {
     nextTierLabel: 'Spend $2,400 more this quarter to unlock Premium tier perks',
     progressWidthClass: 'w-2/5',
     activities: [
-      { merchant: 'Target', date: 'Jun 14, 2026', amount: '$94.23', reward: 'Activated Offer' },
-      { merchant: 'Shell', date: 'Jun 12, 2026', amount: '$56.10', reward: 'Activated Offer' },
-      { merchant: 'DoorDash', date: 'Jun 09, 2026', amount: '$31.87', reward: 'Activated Offer' },
+      { merchant: 'Walmart', date: 'Jun 22, 2026', amount: '$45.67', reward: 'Activated Offer' },
+      { merchant: 'CVS Pharmacy', date: 'Jun 19, 2026', amount: '$28.34', reward: 'Activated Offer' },
+      { merchant: 'Costco', date: 'Jun 15, 2026', amount: '$102.50', reward: 'Activated Offer' },
     ],
   },
   Premium: {
@@ -54,9 +54,9 @@ const TIER_ACCOUNT_MOCKS: Record<CardType, TierAccountMock> = {
     nextTierLabel: 'Spend $3,600 more to unlock Black card privileges',
     progressWidthClass: 'w-3/5',
     activities: [
-      { merchant: 'Marriott Marquis', date: 'Jun 16, 2026', amount: '$682.00', reward: 'Activated Offer' },
-      { merchant: 'United Airlines', date: 'Jun 11, 2026', amount: '$458.40', reward: 'Activated Offer' },
-      { merchant: 'Apple Store', date: 'Jun 07, 2026', amount: '$219.99', reward: 'Activated Offer' },
+      { merchant: 'Marriott Hotel', date: 'Jun 20, 2026', amount: '$385.50', reward: 'Activated Offer' },
+      { merchant: 'Delta Airlines', date: 'Jun 16, 2026', amount: '$425.75', reward: 'Activated Offer' },
+      { merchant: 'Ruth\'s Chris Steakhouse', date: 'Jun 12, 2026', amount: '$189.99', reward: 'Activated Offer' },
     ],
   },
   Black: {
@@ -64,9 +64,9 @@ const TIER_ACCOUNT_MOCKS: Record<CardType, TierAccountMock> = {
     nextTierLabel: 'You are in the highest published tier. Unlock invite-only concierge moments with premium spend.',
     progressWidthClass: 'w-[92%]',
     activities: [
-      { merchant: 'Aman Tokyo', date: 'Jun 18, 2026', amount: '$1,240.00', reward: 'Activated Offer' },
-      { merchant: 'Le Bernardin', date: 'Jun 13, 2026', amount: '$450.00', reward: 'Activated Offer' },
-      { merchant: 'Rimowa', date: 'Jun 08, 2026', amount: '$980.00', reward: 'Activated Offer' },
+      { merchant: 'Park Hyatt Resort', date: 'Jun 21, 2026', amount: '$895.00', reward: 'Activated Offer' },
+      { merchant: 'United First Class', date: 'Jun 18, 2026', amount: '$950.00', reward: 'Activated Offer' },
+      { merchant: 'Luxury Spa & Wellness', date: 'Jun 14, 2026', amount: '$680.50', reward: 'Activated Offer' },
     ],
   },
 };

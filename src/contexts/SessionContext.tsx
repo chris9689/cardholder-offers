@@ -27,9 +27,11 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const [likedOffers, setLikedOffers] = useState<Set<string>>(new Set());
   const [activatedOffers, setActivatedOffers] = useState<Set<string>>(new Set());
   const [savingsTransactions, setSavingsTransactions] = useState<SavingsTransaction[]>([
-    { sku: 'mkt-001', merchant: '7-Eleven', date: 'Jun 20, 2026', amount: 2.45 },
-    { sku: 'rst-001', merchant: 'Le Bernardin', date: 'Jun 15, 2026', amount: 45.00 },
-    { sku: 'mkt-002', merchant: 'Whole Foods', date: 'Jun 10, 2026', amount: 8.52 },
+    { sku: 'ret-001', merchant: 'Walmart', date: 'Jun 22, 2026', amount: 4.57 },
+    { sku: 'phm-001', merchant: 'CVS Pharmacy', date: 'Jun 20, 2026', amount: 2.83 },
+    { sku: 'gro-001', merchant: 'Costco', date: 'Jun 18, 2026', amount: 10.25 },
+    { sku: 'gas-001', merchant: 'Shell Gas Station', date: 'Jun 15, 2026', amount: 5.50 },
+    { sku: 'food-001', merchant: 'McDonald\'s', date: 'Jun 12, 2026', amount: 3.40 },
   ]);
 
   const toggleLike = (sku: string) => {

@@ -32,10 +32,10 @@ export default function Savings() {
           </button>
 
           <span className="font-sans text-[10px] font-black text-secondary uppercase tracking-[0.4em] mb-4 block">
-            Your Savings Dashboard
+            Dashboard
           </span>
           <h1 className="text-4xl md:text-5xl text-primary font-black mb-4 tracking-tighter uppercase not-italic">
-            Money Saved
+            Savings Overview
           </h1>
           <p className="font-sans text-on-surface-variant text-base max-w-2xl font-light leading-relaxed opacity-70">
             Track all the money you've saved by activating offers with your {displayTier} card.
@@ -60,7 +60,7 @@ export default function Savings() {
             </div>
             <div className="space-y-2">
               <h2 className="text-6xl font-black text-green-700">${totalSaved.toFixed(2)}</h2>
-              <p className="text-sm font-bold text-green-600 uppercase tracking-widest">This Session</p>
+              <p className="text-sm font-bold text-green-600 uppercase tracking-widest"></p>
             </div>
             <div className="mt-8 pt-8 border-t border-green-200/30">
               <p className="text-xs font-bold text-green-700/70 uppercase tracking-widest">
