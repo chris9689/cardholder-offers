@@ -404,7 +404,6 @@ export default function Home() {
                   </Link>
                 );
               })}
-              )}
 
               {featuredOffers.length === 0 && (
                 <div className="bg-white rounded-3xl border border-outline-variant/15 p-8 text-center">
