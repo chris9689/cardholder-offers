@@ -9,6 +9,7 @@ import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { CardType, useCard } from '../contexts/CardContext';
 import { useSession } from '../contexts/SessionContext';
+import { SavingsTransaction } from '../contexts/SessionContext';
 import { USER } from '../config';
 
 interface ActivityItem {
@@ -68,7 +69,34 @@ const TIER_ACCOUNT_MOCKS: Record<CardType, TierAccountMock> = {
       { merchant: 'United First Class', date: 'Jun 18, 2026', amount: '$950.00', reward: 'Activated Offer' },
       { merchant: 'Luxury Spa & Wellness', date: 'Jun 14, 2026', amount: '$680.50', reward: 'Activated Offer' },
     ],
-  },
+  
+
+const TIER_SAVINGS_MOCKS: Record<CardType, SavingsTransaction[]> = {
+  Standard: [
+    { sku: 'ret-001', merchant: 'Walmart', date: 'Jun 22, 2026', amount: 4.57 },
+
+  const displayName = userVariables?.name ?? USER.name;
+  const displayTier = userVariables?.cardType ?? cardType;
+  const tierSavings = TIER_SAVINGS_MOCKS[displayTier] ?? TIER_SAVINGS_MOCKS.Standard;
+  const totalSaved = tierSaving
+  Premium: [
+    { sku: 'hot-001', merchant: 'Marriott Hotel', date: 'Jun 20, 2026', amount: 38.55 },
+    { sku: 'air-001', merchant: 'Delta Airlines', date: 'Jun 16, 2026', amount: 42.58 },
+    { sku: 'rst-001', merchant: 'Ruth\'s Chris Steakhouse', date: 'Jun 12, 2026', amount: 18.99 },
+    { sku: 'spa-001', merchant: 'Canyon Ranch Spa', date: 'Jun 08, 2026', amount: 50.25 },
+    { sku: 'res-001', merchant: 'The Ritz-Carlton', date: 'Jun 04, 2026', amount: 89.50 },
+    { sku: 'car-001', merchant: 'Premium Car Rental', date: 'May 31, 2026', amount: 62.37 },
+  ],
+  Black: [
+    { sku: 'hyp-001', merchant: 'Park Hyatt Resort', date: 'Jun 21, 2026', amount: 89.50 },
+    { sku: 'air-001', merchant: 'United First Class', date: 'Jun 18, 2026', amount: 95.00 },
+    { sku: 'spa-001', merchant: 'Luxury Spa & Wellness', date: 'Jun 14, 2026', amount: 68.05 },
+    { sku: 'con-001', merchant: 'Concierge Services', date: 'Jun 10, 2026', amount: 125.75 },
+    { sku: 'res-001', merchant: 'Nobu Restaurants', date: 'Jun 06, 2026', amount: 187.50 },
+    { sku: 'trav-001', merchant: 'Private Travel Club', date: 'Jun 01, 2026', amount: 225.00 },
+    { sku: 'exp-001', merchant: 'Exclusive Events', date: 'May 28, 2026', amount: 289.70 },
+  ],
+};},
 };
 
 export default function Account() {
