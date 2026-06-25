@@ -11,10 +11,12 @@ import Home from './pages/Home';
 import Browse from './pages/Browse';
 import OfferDetail from './pages/OfferDetail';
 import Account from './pages/Account';
+import Savings from './pages/Savings';
 import SearchPage from './pages/Search';
 import CuratedResults from './pages/CuratedResults';
 import AgentDrawer from './components/AgentDrawer';
 import { CardProvider } from './contexts/CardContext';
+import { SessionProvider } from './contexts/SessionContext';
 import { setDyRecommendationContext } from './lib/dynamicYield';
 
 function ScrollToTop() {
@@ -52,26 +54,28 @@ function MainLayout({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return (
-    <CardProvider>
-      <Router>
-        <ScrollToTop />
-        <DynamicYieldPageContext />
-        <MainLayout>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/offers" element={<Browse />} />
-            <Route path="/offers/:sku" element={<OfferDetail />} />
-            <Route path="/account" element={<Account />} />
-            <Route path="/search" element={<SearchPage />} />
-            <Route path="/curated" element={<CuratedResults />} />
-            {/* Fallbacks for menu links not yet implemented */}
-            <Route path="/rewards" element={<Browse />} />
-            <Route path="/savings" element={<Browse />} />
-            <Route path="/concierge" element={<Home />} />
-            <Route path="/lifestyle" element={<Home />} />
-          </Routes>
-        </MainLayout>
-      </Router>
-    </CardProvider>
+    <SessionProvider>
+      <CardProvider>
+        <Router>
+          <ScrollToTop />
+          <DynamicYieldPageContext />
+          <MainLayout>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/offers" element={<Browse />} />
+              <Route path="/offers/:sku" element={<OfferDetail />} />
+              <Route path="/account" element={<Account />} />
+              <Route path="/savings" element={<Savings />} />
+              <Route path="/search" element={<SearchPage />} />
+              <Route path="/curated" element={<CuratedResults />} />
+              {/* Fallbacks for menu links not yet implemented */}
+              <Route path="/rewards" element={<Browse />} />
+              <Route path="/concierge" element={<Home />} />
+              <Route path="/lifestyle" element={<Home />} />
+            </Routes>
+          </MainLayout>
+        </Router>
+      </CardProvider>
+    </SessionProvider>
   );
 }

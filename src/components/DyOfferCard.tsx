@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Heart, ExternalLink } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { DyRecommendationSlot } from '../lib/dyServerApi';
+import { useSession } from '../contexts/SessionContext';
 
 interface DyOfferCardProps {
   slot: DyRecommendationSlot;
@@ -13,6 +14,15 @@ const DyOfferCard: React.FC<DyOfferCardProps> = ({ slot }) => {
   const category = productData.categories?.[0] ?? '';
   const brand = productData.brand ?? sku;
   const offerPath = `/offers/${encodeURIComponent(sku)}`;
+  const { likedOffers, toggleLike, activatedOffers } = useSession();
+  const isLiked = likedOffers.has(sku);
+  const isActivated = activatedOffers.has(sku);
+
+  const handleHeartClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleLike(sku);
+  };
 
   return (
     <motion.div
@@ -37,9 +47,16 @@ const DyOfferCard: React.FC<DyOfferCardProps> = ({ slot }) => {
             )}
           </div>
         )}
-        <button className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center text-on-surface-variant hover:text-red-500 transition-colors shadow-sm">
-          <Heart size={18} />
-        </button>
+        <motion.button
+          onClick={handleHeartClick}
+          whileScale={{ scale: 1.15 }}
+          className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center text-on-surface-variant transition-colors shadow-sm"
+        >
+          <Heart
+            size={18}
+            className={isLiked ? 'fill-red-500 text-red-500' : 'hover:text-red-500'}
+          />
+        </motion.button>
       </div>
 
       <div className="p-5 flex flex-col gap-2">
@@ -76,9 +93,19 @@ const DyOfferCard: React.FC<DyOfferCardProps> = ({ slot }) => {
         <div className="mt-4 flex items-center justify-between border-t border-outline-variant/10 pt-4">
           <Link
             to={offerPath}
-            className="text-secondary font-sans text-sm font-bold hover:underline underline-offset-4 decoration-2"
+            className={`font-sans text-sm font-bold ${
+              isActivated
+                ? 'text-green-600 flex items-center gap-1'
+                : 'text-secondary hover:underline underline-offset-4 decoration-2'
+            }`}
           >
-            Activate Offer
+            {isActivated ? (
+              <>
+                <span>✓</span> Activated
+              </>
+            ) : (
+              'Activate Offer'
+            )}
           </Link>
           <Link to={offerPath} className="text-on-surface-variant hover:text-primary transition-colors">
             <ExternalLink size={18} />

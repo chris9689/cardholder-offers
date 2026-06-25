@@ -8,6 +8,7 @@ import { Heart, ExternalLink, CheckCircle } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { Offer, getOfferRouteToken } from '../data/offers';
+import { useSession } from '../contexts/SessionContext';
 
 interface OfferCardProps {
   offer: Offer;
@@ -15,6 +16,14 @@ interface OfferCardProps {
 
 const OfferCard: React.FC<OfferCardProps> = ({ offer }) => {
   const routeToken = getOfferRouteToken(offer);
+  const { likedOffers, toggleLike } = useSession();
+  const isLiked = likedOffers.has(routeToken);
+
+  const handleHeartClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleLike(routeToken);
+  };
 
   return (
     <motion.div 
@@ -27,11 +36,16 @@ const OfferCard: React.FC<OfferCardProps> = ({ offer }) => {
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
           src={offer.image} 
         />
-        <button 
-          className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center text-on-surface-variant hover:text-red-500 transition-colors shadow-sm"
+        <motion.button
+          onClick={handleHeartClick}
+          whileScale={{ scale: 1.15 }}
+          className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center text-on-surface-variant transition-colors shadow-sm"
         >
-          <Heart size={18} />
-        </button>
+          <Heart
+            size={18}
+            className={isLiked ? 'fill-red-500 text-red-500' : 'hover:text-red-500'}
+          />
+        </motion.button>
         {offer.distance && (
           <div className="absolute bottom-3 left-3 px-2 py-1 rounded bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold">
             {offer.distance}

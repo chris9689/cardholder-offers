@@ -183,7 +183,7 @@ export default function AgentDrawer() {
           {/* Quick Stats Panel */}
           <div className="bg-surface-container/30 px-6 py-4 border-b border-outline-variant/10 flex items-center justify-between">
             <span className="font-sans text-[10px] font-black tracking-widest text-on-surface-variant uppercase">Member: {displayName}</span>
-            <span className="font-sans text-[10px] font-black tracking-widest text-on-surface-variant uppercase">Points: {userVariables?.points ?? 'N/A'}</span>
+            <span className="font-sans text-[10px] font-black tracking-widest text-on-surface-variant uppercase">{displayCardType} Card</span>
           </div>
 
           {/* Messages Log */}

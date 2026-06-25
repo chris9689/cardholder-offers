@@ -92,11 +92,15 @@ export const CURATED_PROMPTS_BY_TIER: Record<CardType, CuratedPromptTemplate[]> 
   ],
 };
 
-function injectPromptVariables(template: string, points: number): string {
+function injectPromptVariables(template: string, points?: number): string {
+  if (!points || points === 0) {
+    // Remove {points} placeholder if no points provided
+    return template.replace(/\s*\{points\}/g, '').replace(/\s+/g, ' ').trim();
+  }
   return template.replace(/\{points\}/g, points.toLocaleString());
 }
 
-export function getCuratedHomepagePrompts(cardType: CardType, points: number): CuratedPrompt[] {
+export function getCuratedHomepagePrompts(cardType: CardType, points?: number): CuratedPrompt[] {
   const templates = CURATED_PROMPTS_BY_TIER[cardType] ?? FALLBACK_CURATED_PROMPTS;
 
   return templates.map((template) => ({

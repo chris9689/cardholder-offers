@@ -3,11 +3,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { ArrowLeft, ShieldCheck, Clock, Info, ExternalLink, Globe, BadgeCheck } from 'lucide-react';
+import { ArrowLeft, ShieldCheck, Clock, Info, Globe, BadgeCheck } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { useCard } from '../contexts/CardContext';
+import { useSession } from '../contexts/SessionContext';
 import { choosePdpRecommendations, DyRecommendationSlot } from '../lib/dyServerApi';
 import DyOfferCard from '../components/DyOfferCard';
 import { getAllProducts, getCategoryDescription, getProductBySku, ProductFeedItem } from '../lib/productFeed';
@@ -29,8 +30,10 @@ export default function OfferDetail() {
   const { sku } = useParams();
   const navigate = useNavigate();
   const { cardType } = useCard();
+  const { activatedOffers, activateOffer } = useSession();
   const [recsTitle, setRecsTitle] = useState('Recommended for You');
   const [recommendations, setRecommendations] = useState<DyRecommendationSlot[]>([]);
+  const [activationMessage, setActivationMessage] = useState<string | null>(null);
 
   const allProducts = useMemo(() => getAllProducts(), []);
   const product = useMemo<ProductFeedItem | undefined>(() => {
@@ -105,10 +108,7 @@ export default function OfferDetail() {
                 loading="eager"
               />
               <div className="absolute inset-0 bg-linear-to-t from-black/35 via-transparent to-transparent" />
-              <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between gap-3">
-                <div className="bg-black/65 text-white px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest">
-                  SKU {product.sku}
-                </div>
+              <div className="absolute bottom-4 right-4">
                 <div className="bg-white/90 text-primary px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest">
                   {product.card_tier}
                 </div>
@@ -212,13 +212,39 @@ export default function OfferDetail() {
           </div>
 
           <div className="sticky bottom-6 lg:relative lg:bottom-0 mt-1">
-            <a
-              href={product.url || '#'}
-              className="w-full bg-primary text-white p-5 rounded-3xl font-sans text-base font-bold hover:bg-primary/90 hover:scale-[1.01] active:scale-95 transition-all shadow-2xl shadow-primary/20 flex items-center justify-center gap-3"
+            <button
+              onClick={() => {
+                if (product.sku) {
+                  activateOffer(product.sku);
+                  setActivationMessage('Offer Activated!');
+                  setTimeout(() => setActivationMessage(null), 2000);
+                }
+              }}
+              disabled={activatedOffers.has(product.sku)}
+              className="w-full bg-primary text-white p-5 rounded-3xl font-sans text-base font-bold hover:bg-primary/90 hover:scale-[1.01] active:scale-95 transition-all shadow-2xl shadow-primary/20 flex items-center justify-center gap-3 disabled:opacity-75 disabled:cursor-not-allowed relative overflow-hidden"
             >
-              Activate Offer
-              <ExternalLink size={18} />
-            </a>
+              {activationMessage ? (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  className="flex items-center gap-2"
+                >
+                  <motion.span
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    ✓
+                  </motion.span>
+                  {activationMessage}
+                </motion.div>
+              ) : activatedOffers.has(product.sku) ? (
+                <>✓ Activated</>
+              ) : (
+                'Activate Offer'
+              )}
+            </button>
           </div>
         </div>
       </section>

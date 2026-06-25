@@ -3,11 +3,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { CreditCard, Award, History, Settings, ChevronRight, PieChart, Bell, Sparkles } from 'lucide-react';
+import { CreditCard, Award, History, Settings, ChevronRight, PieChart, Bell, Sparkles, TrendingUp } from 'lucide-react';
 import React from 'react';
 import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { CardType, useCard } from '../contexts/CardContext';
+import { useSession } from '../contexts/SessionContext';
 import { USER } from '../config';
 
 interface ActivityItem {
@@ -21,7 +22,6 @@ interface TierAccountMock {
   cardEnding: string;
   nextTierLabel: string;
   progressWidthClass: string;
-  pointsLabel: string;
   activities: ActivityItem[];
 }
 
@@ -35,7 +35,6 @@ const DEFAULT_TIER_MOCK: TierAccountMock = {
   cardEnding: '4242',
   nextTierLabel: 'Spend $1,250 more to unlock Centurion Privileges',
   progressWidthClass: 'w-3/4',
-  pointsLabel: 'Available Points',
   activities: DEFAULT_ACTIVITIES,
 };
 
@@ -44,43 +43,41 @@ const TIER_ACCOUNT_MOCKS: Record<CardType, TierAccountMock> = {
     cardEnding: '1184',
     nextTierLabel: 'Spend $2,400 more this quarter to unlock Premium tier perks',
     progressWidthClass: 'w-2/5',
-    pointsLabel: 'Starter Rewards Points',
     activities: [
-      { merchant: 'Target', date: 'Jun 14, 2026', amount: '$94.23', reward: '+942 Points' },
-      { merchant: 'Shell', date: 'Jun 12, 2026', amount: '$56.10', reward: '+$5.61 Cashback' },
-      { merchant: 'DoorDash', date: 'Jun 09, 2026', amount: '$31.87', reward: '+318 Points' },
+      { merchant: 'Target', date: 'Jun 14, 2026', amount: '$94.23', reward: 'Activated Offer' },
+      { merchant: 'Shell', date: 'Jun 12, 2026', amount: '$56.10', reward: 'Activated Offer' },
+      { merchant: 'DoorDash', date: 'Jun 09, 2026', amount: '$31.87', reward: 'Activated Offer' },
     ],
   },
   Premium: {
     cardEnding: '7721',
     nextTierLabel: 'Spend $3,600 more to unlock Black card privileges',
     progressWidthClass: 'w-3/5',
-    pointsLabel: 'Premium Rewards Points',
     activities: [
-      { merchant: 'Marriott Marquis', date: 'Jun 16, 2026', amount: '$682.00', reward: '+3,410 Points' },
-      { merchant: 'United Airlines', date: 'Jun 11, 2026', amount: '$458.40', reward: '+4,584 Points' },
-      { merchant: 'Apple Store', date: 'Jun 07, 2026', amount: '$219.99', reward: '+$22.00 Cashback' },
+      { merchant: 'Marriott Marquis', date: 'Jun 16, 2026', amount: '$682.00', reward: 'Activated Offer' },
+      { merchant: 'United Airlines', date: 'Jun 11, 2026', amount: '$458.40', reward: 'Activated Offer' },
+      { merchant: 'Apple Store', date: 'Jun 07, 2026', amount: '$219.99', reward: 'Activated Offer' },
     ],
   },
   Black: {
     cardEnding: '4242',
     nextTierLabel: 'You are in the highest published tier. Unlock invite-only concierge moments with premium spend.',
     progressWidthClass: 'w-[92%]',
-    pointsLabel: 'Elite Rewards Points',
     activities: [
-      { merchant: 'Aman Tokyo', date: 'Jun 18, 2026', amount: '$1,240.00', reward: '+6,200 Points' },
-      { merchant: 'Le Bernardin', date: 'Jun 13, 2026', amount: '$450.00', reward: '+2,250 Points' },
-      { merchant: 'Rimowa', date: 'Jun 08, 2026', amount: '$980.00', reward: '+$98.00 Cashback' },
+      { merchant: 'Aman Tokyo', date: 'Jun 18, 2026', amount: '$1,240.00', reward: 'Activated Offer' },
+      { merchant: 'Le Bernardin', date: 'Jun 13, 2026', amount: '$450.00', reward: 'Activated Offer' },
+      { merchant: 'Rimowa', date: 'Jun 08, 2026', amount: '$980.00', reward: 'Activated Offer' },
     ],
   },
 };
 
 export default function Account() {
-  const { cardType, points, userVariables } = useCard();
+  const { cardType, userVariables } = useCard();
+  const { savingsTransactions } = useSession();
 
   const displayName = userVariables?.name ?? USER.name;
   const displayTier = userVariables?.cardType ?? cardType;
-  const displayPoints = userVariables?.points ?? points ?? USER.initialPoints;
+  const totalSaved = savingsTransactions.reduce((sum, t) => sum + t.amount, 0);
 
   const tierData = TIER_ACCOUNT_MOCKS[displayTier] ?? DEFAULT_TIER_MOCK;
   const activities = tierData.activities?.length > 0 ? tierData.activities : DEFAULT_ACTIVITIES;
@@ -130,15 +127,18 @@ export default function Account() {
         {/* Stats Column */}
         <div className="lg:col-span-4 space-y-6">
           <div className="bg-white p-10 rounded-[40px] shadow-sm border border-outline-variant/10">
-            <span className="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.3em] mb-8 block">Total Balance</span>
+            <span className="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.3em] mb-8 block flex items-center gap-2">
+              <TrendingUp size={14} className="text-green-600" />
+              Total Saved
+            </span>
             <div className="space-y-1">
-              <h3 className="text-6xl text-primary font-black">{displayPoints.toLocaleString()}</h3>
-              <p className="text-xs font-black text-green-600 uppercase tracking-widest">{tierData.pointsLabel}</p>
+              <h3 className="text-6xl text-primary font-black">${totalSaved.toFixed(2)}</h3>
+              <p className="text-xs font-black text-green-600 uppercase tracking-widest">From Activated Offers</p>
             </div>
             <div className="mt-12 pt-8 border-t border-outline-variant/10">
-              <button className="w-full bg-primary text-white py-4 rounded-2xl font-sans text-xs font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl shadow-primary/10">
-                Redeem Rewards
-              </button>
+              <Link to="/savings" className="w-full bg-primary text-white py-4 rounded-2xl font-sans text-xs font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl shadow-primary/10 flex items-center justify-center">
+                View Savings Details
+              </Link>
             </div>
           </div>
 
@@ -165,8 +165,8 @@ export default function Account() {
         {/* Activity & History Column */}
         <div className="lg:col-span-8 space-y-12">
           <div className="flex justify-between items-baseline mb-4 ml-4">
-            <h2 className="text-3xl text-primary font-black">Recent Experiences</h2>
-            <Link to="/activity" className="text-[10px] font-black text-secondary uppercase tracking-[0.2em] border-b border-secondary/30 pb-0.5">Full History</Link>
+            <h2 className="text-3xl text-primary font-black">Recent Activated Offers</h2>
+            <Link to="/savings" className="text-[10px] font-black text-secondary uppercase tracking-[0.2em] border-b border-secondary/30 pb-0.5">Full Savings</Link>
           </div>
           
           <div className="bg-white rounded-[48px] overflow-hidden shadow-sm border border-outline-variant/10 divide-y divide-outline-variant/10">

@@ -124,7 +124,7 @@ function getCountryHeroImage(country: string, countryOffers: ReturnType<typeof g
 }
 
 export default function Home() {
-  const { cardType, points, userVariables, setUserVariables } = useCard();
+  const { cardType, userVariables, setUserVariables } = useCard();
   const { pathname } = useLocation();
   const [homepageData, setHomepageData] = useState<HomepageChoiceResult | null>(null);
   const [recsPage, setRecsPage] = useState(0);
@@ -194,8 +194,7 @@ export default function Home() {
 
   const displayName = userVariables?.name ?? USER.name;
   const displayCardType = userVariables?.cardType ?? cardType;
-  const displayPoints = userVariables?.points ?? points;
-  const suggestedPrompts = getCuratedHomepagePrompts(displayCardType, displayPoints);
+  const suggestedPrompts = getCuratedHomepagePrompts(displayCardType, 0);
 
   const allFeedOffers = getAllProducts().filter((offer) => offer.in_stock);
   const tierEligibleOffers = allFeedOffers.filter((offer) => offer.card_tier === displayCardType);
@@ -225,7 +224,7 @@ export default function Home() {
             <div className="hidden md:block w-px h-3 bg-outline-variant/30" />
             <p className="font-sans text-[10px] font-black text-on-surface-variant flex items-center gap-2 uppercase tracking-[0.2em]">
               <span className={`w-2 h-2 rounded-full ${displayCardType === 'Black' ? 'bg-primary shadow-[0_0_8px_rgba(0,0,0,0.3)]' : displayCardType === 'Premium' ? 'bg-secondary' : 'bg-outline'}`} />
-              {displayCardType} Status • {displayPoints.toLocaleString()} Points
+            {displayCardType} Cardholder
             </p>
           </div>
           <Link to="/offers" className="flex items-center gap-1.5 text-secondary font-sans text-[10px] font-black uppercase tracking-[0.2em] group">
