@@ -69,7 +69,8 @@ function normalizeDate(value: string): string {
 }
 
 const parsedProducts: ProductFeedItem[] = (() => {
-  const lines = productsCsv.split(/\r?\n/).filter((line) => line.trim().length > 0);
+  const normalizedCsv = productsCsv.replace(/^\uFEFF/, '');
+  const lines = normalizedCsv.split(/\r?\n/).filter((line) => line.trim().length > 0);
   if (lines.length <= 1) {
     return [];
   }
