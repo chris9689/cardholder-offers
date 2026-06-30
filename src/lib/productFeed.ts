@@ -1,4 +1,4 @@
-import productsCsv from '../public/products.csv?raw';
+import productsCsv from '/products.csv?raw';
 
 export interface ProductFeedItem {
   sku: string;
