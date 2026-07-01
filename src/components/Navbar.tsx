@@ -9,12 +9,21 @@ import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { useCard, CardType } from '../contexts/CardContext';
 import { BRAND } from '../config';
+import AffinityModeSelector from './AffinityModeSelector';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [showCardMenu, setShowCardMenu] = useState(false);
   const location = useLocation();
-  const { cardType, setCardType, setIsAgentOpen } = useCard();
+  const {
+    cardType,
+    setIsAgentOpen,
+    showAffinityModal,
+    pendingCardType,
+    handleCardTypePending,
+    confirmCardTypeChange,
+    cancelCardTypeChange,
+  } = useCard();
 
   const navLinks = [
     { name: 'Home', path: '/' },
@@ -92,7 +101,7 @@ export default function Navbar() {
                     <button
                       key={type}
                       onClick={() => {
-                        setCardType(type);
+                        handleCardTypePending(type);
                         setShowCardMenu(false);
                       }}
                       className="w-full text-left px-4 py-3 text-xs font-bold tracking-widest uppercase hover:bg-surface-container transition-colors flex items-center justify-between group"
@@ -153,5 +162,13 @@ export default function Navbar() {
         )}
       </AnimatePresence>
     </nav>
+
+    {/* Affinity Mode Selector Modal */}
+    <AffinityModeSelector
+      isOpen={showAffinityModal}
+      cardType={pendingCardType || cardType}
+      onConfirm={confirmCardTypeChange}
+      onCancel={cancelCardTypeChange}
+    />
   );
 }

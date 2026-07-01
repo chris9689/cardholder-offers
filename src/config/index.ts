@@ -3,7 +3,41 @@
  * Change branding, colors, fonts, spacing here; affects the entire app.
  */
 
-// Brand
+// Global type augmentation for DY.API
+declare global {
+  interface Window {
+    DY?: {
+      API?: (eventType: string, payload: any) => void;
+    };
+  }
+}
+
+import { CardType } from '../contexts/CardContext';
+
+// Affinity Preset Configuration
+export interface AffinityPresetItem {
+  attribute: string;
+  values: string[];
+}
+
+export const AFFINITY_PRESETS: Record<CardType, AffinityPresetItem[]> = {
+  Standard: [
+    { attribute: 'categories', values: ['SHOPPING', 'CULINARY', 'ENTERTAINMENT'] },
+    { attribute: 'brand', values: ['MASTERCARD'] },
+    { attribute: 'offer_country', values: ['UNITEDSTATES'] },
+  ],
+  Premium: [
+    { attribute: 'categories', values: ['TRAVEL', 'CULINARY', 'ENTERTAINMENT', 'ARTSCULTURE'] },
+    { attribute: 'brand', values: ['MASTERCARD', 'PREMIUM'] },
+    { attribute: 'offer_country', values: ['UNITEDSTATES', 'FRANCE', 'ITALY', 'SPAIN'] },
+  ],
+  Black: [
+    { attribute: 'categories', values: ['TRAVEL', 'ENTERTAINMENT', 'ARTSCULTURE', 'CULINARY'] },
+    { attribute: 'brand', values: ['MASTERCARD', 'LUXURY'] },
+    { attribute: 'offer_country', values: ['UNITEDSTATES', 'FRANCE', 'ITALY', 'SPAIN', 'UNITEDARABEMIRATES'] },
+  ],
+};
+
 
 export const BRAND = {
   name: 'Spending Offers',

@@ -77,6 +77,11 @@ export interface UserAffinityProfile {
   countries: Record<string, number>;
 }
 
+export interface AffinityPresetItem {
+  attribute: string;
+  values: string[];
+}
+
 const STORAGE_KEYS = {
   dyid: ['_dyid', 'dyid'],
   dyidServer: ['_dyid_server', 'dyid_server'],
@@ -624,6 +629,48 @@ export async function chooseUserBar(pathname: string, cardType: CardType): Promi
     };
   } catch {
     return null;
+  }
+}
+
+export function resetDySession(): void {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  // Clear all DY identity tokens to force generation of new dyid/session on next API call
+  STORAGE_KEYS.dyid.forEach((key) => {
+    window.localStorage.removeItem(key);
+    document.cookie = `${key}=; path=/; max-age=0; SameSite=Lax`;
+  });
+  STORAGE_KEYS.dyidServer.forEach((key) => {
+    window.localStorage.removeItem(key);
+    document.cookie = `${key}=; path=/; max-age=0; SameSite=Lax`;
+  });
+  STORAGE_KEYS.session.forEach((key) => {
+    window.localStorage.removeItem(key);
+    document.cookie = `${key}=; path=/; max-age=0; SameSite=Lax`;
+  });
+}
+
+export async function informAffinityPreset(affinityData: AffinityPresetItem[]): Promise<void> {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  // Send inform-affinity event via DY.API if available
+  if (window.DY?.API) {
+    try {
+      window.DY.API('event', {
+        name: 'Inform Affinity',
+        properties: {
+          dyType: 'inform-affinity-v1',
+          source: 'tier-preset-selection',
+          data: affinityData,
+        },
+      });
+    } catch (error) {
+      console.error('Failed to inform affinity preset:', error);
+    }
   }
 }
 

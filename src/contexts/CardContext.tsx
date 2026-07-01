@@ -4,7 +4,8 @@
  */
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { USER } from '../config';
+import { USER, AFFINITY_PRESETS } from '../config';
+import { resetDySession, informAffinityPreset } from '../lib/dyServerApi';
 
 const CARD_TIER_STORAGE_KEY = 'cardholder.offers.tier';
 const USER_VARIABLES_STORAGE_KEY = 'cardholder.offers.userVariables';
@@ -55,6 +56,11 @@ interface CardContextType {
   setPoints: (points: number) => void;
   userVariables: UserVariables | null;
   setUserVariables: (value: UserVariables | null) => void;
+  showAffinityModal: boolean;
+  pendingCardType: CardType | null;
+  handleCardTypePending: (type: CardType) => void;
+  confirmCardTypeChange: (usePreset: boolean) => Promise<void>;
+  cancelCardTypeChange: () => void;
 }
 
 const CardContext = createContext<CardContextType | undefined>(undefined);
@@ -77,6 +83,8 @@ export function CardProvider({ children }: { children: ReactNode }) {
 
     return parseStoredUserVariables(window.localStorage.getItem(USER_VARIABLES_STORAGE_KEY));
   });
+  const [showAffinityModal, setShowAffinityModal] = useState(false);
+  const [pendingCardType, setPendingCardType] = useState<CardType | null>(null);
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -112,6 +120,41 @@ export function CardProvider({ children }: { children: ReactNode }) {
     window.localStorage.setItem(USER_VARIABLES_STORAGE_KEY, JSON.stringify(userVariables));
   }, [userVariables]);
 
+  const handleCardTypePending = (newType: CardType) => {
+    if (newType !== cardType) {
+      setPendingCardType(newType);
+      setShowAffinityModal(true);
+    }
+  };
+
+  const cancelCardTypeChange = () => {
+    setShowAffinityModal(false);
+    setPendingCardType(null);
+  };
+
+  const confirmCardTypeChange = async (usePreset: boolean) => {
+    if (!pendingCardType) return;
+
+    // Reset DY session (new dyid)
+    resetDySession();
+
+    // If preset mode, inform affinity with the tier's preset values
+    if (usePreset) {
+      const presetData = AFFINITY_PRESETS[pendingCardType];
+      await informAffinityPreset(presetData);
+    }
+
+    // Update card type
+    setCardType(pendingCardType);
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(CARD_TIER_STORAGE_KEY, pendingCardType);
+    }
+
+    // Close modal
+    setShowAffinityModal(false);
+    setPendingCardType(null);
+  };
+
   return (
     <CardContext.Provider
       value={{
@@ -123,6 +166,11 @@ export function CardProvider({ children }: { children: ReactNode }) {
         setPoints,
         userVariables,
         setUserVariables,
+        showAffinityModal,
+        pendingCardType,
+        handleCardTypePending,
+        confirmCardTypeChange,
+        cancelCardTypeChange,
       }}
     >
       {children}
