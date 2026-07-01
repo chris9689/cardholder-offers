@@ -148,14 +148,16 @@ export function CardProvider({ children }: { children: ReactNode }) {
       // 3. Small delay to ensure cookies are cleared before next API call
       await new Promise((resolve) => setTimeout(resolve, 100));
 
-      // 4. Send inform affinity event if preset mode (this will use fresh dyid)
+      // 4. Send pageview FIRST to generate fresh dyid and create new session
+      // DY backend will generate new dyid and return it in cookies
+      await trackPageview('/', pendingCardType);
+
+      // 5. THEN send inform affinity event with the fresh dyid
+      // DY script now knows about the new dyid and will associate affinity data with it
       if (usePreset) {
         const presetData = AFFINITY_PRESETS[pendingCardType];
         await informAffinityPreset(presetData);
       }
-
-      // 5. Force pageview to generate new dyid and track session start with new tier
-      await trackPageview('/', pendingCardType);
     } catch (error) {
       console.error('Error during card type change:', error);
     } finally {
