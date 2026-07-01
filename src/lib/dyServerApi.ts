@@ -637,7 +637,8 @@ export function resetDySession(): void {
     return;
   }
 
-  // Clear all DY identity tokens to force generation of new dyid/session on next API call
+  // Clear all DY identity tokens from localStorage and cookies to force generation of new dyid/session
+  // on next API call. The DY.API client-side library will regenerate these when readIdentity() is called.
   STORAGE_KEYS.dyid.forEach((key) => {
     window.localStorage.removeItem(key);
     document.cookie = `${key}=; path=/; max-age=0; SameSite=Lax`;
@@ -650,6 +651,10 @@ export function resetDySession(): void {
     window.localStorage.removeItem(key);
     document.cookie = `${key}=; path=/; max-age=0; SameSite=Lax`;
   });
+
+  // Note: The DY script may cache identity in memory. The next API call (e.g., trackPageview)
+  // will read fresh values from localStorage via readIdentity() and send them to the backend,
+  // where a new dyid will be generated if one is not provided.
 }
 
 export async function informAffinityPreset(affinityData: AffinityPresetItem[]): Promise<void> {

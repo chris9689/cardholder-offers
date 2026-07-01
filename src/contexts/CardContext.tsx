@@ -5,7 +5,7 @@
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { USER, AFFINITY_PRESETS } from '../config';
-import { resetDySession, informAffinityPreset } from '../lib/dyServerApi';
+import { resetDySession, informAffinityPreset, trackPageview } from '../lib/dyServerApi';
 
 const CARD_TIER_STORAGE_KEY = 'cardholder.offers.tier';
 const USER_VARIABLES_STORAGE_KEY = 'cardholder.offers.userVariables';
@@ -135,24 +135,34 @@ export function CardProvider({ children }: { children: ReactNode }) {
   const confirmCardTypeChange = async (usePreset: boolean) => {
     if (!pendingCardType) return;
 
-    // Reset DY session (new dyid)
-    resetDySession();
+    try {
+      // 1. Reset DY session (clear dyid/session from localStorage and cookies)
+      resetDySession();
 
-    // If preset mode, inform affinity with the tier's preset values
-    if (usePreset) {
-      const presetData = AFFINITY_PRESETS[pendingCardType];
-      await informAffinityPreset(presetData);
+      // 2. Update card type in state and localStorage immediately
+      setCardType(pendingCardType);
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem(CARD_TIER_STORAGE_KEY, pendingCardType);
+      }
+
+      // 3. Small delay to ensure cookies are cleared before next API call
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // 4. Send inform affinity event if preset mode (this will use fresh dyid)
+      if (usePreset) {
+        const presetData = AFFINITY_PRESETS[pendingCardType];
+        await informAffinityPreset(presetData);
+      }
+
+      // 5. Force pageview to generate new dyid and track session start with new tier
+      await trackPageview('/', pendingCardType);
+    } catch (error) {
+      console.error('Error during card type change:', error);
+    } finally {
+      // Close modal
+      setShowAffinityModal(false);
+      setPendingCardType(null);
     }
-
-    // Update card type
-    setCardType(pendingCardType);
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(CARD_TIER_STORAGE_KEY, pendingCardType);
-    }
-
-    // Close modal
-    setShowAffinityModal(false);
-    setPendingCardType(null);
   };
 
   return (
