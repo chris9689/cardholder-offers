@@ -145,6 +145,15 @@ export function CardProvider({ children }: { children: ReactNode }) {
         window.localStorage.setItem(CARD_TIER_STORAGE_KEY, pendingCardType);
       }
 
+      // For a true "fresh" mode, force a full reload to clear DY script in-memory state.
+      // This mirrors the manual behavior where refresh was required to reset affinities.
+      if (!usePreset && typeof window !== 'undefined') {
+        setShowAffinityModal(false);
+        setPendingCardType(null);
+        window.location.reload();
+        return;
+      }
+
       // 3. Small delay to ensure cookies are cleared before next API call
       await new Promise((resolve) => setTimeout(resolve, 100));
 
