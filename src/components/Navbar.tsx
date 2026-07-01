@@ -35,7 +35,8 @@ export default function Navbar() {
   const cardOptions: CardType[] = ['Standard', 'Premium', 'Black'];
 
   return (
-    <nav className="fixed top-0 w-full z-50 bg-white/90 backdrop-blur-md border-b border-outline-variant/10">
+    <>
+      <nav className="fixed top-0 w-full z-50 bg-white/90 backdrop-blur-md border-b border-outline-variant/10">
       <div className="max-w-max-width mx-auto flex justify-between items-center px-margin-mobile md:px-margin-desktop py-4">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2.5 group">
@@ -161,14 +162,15 @@ export default function Navbar() {
           </motion.div>
         )}
       </AnimatePresence>
-    </nav>
+      </nav>
 
-    {/* Affinity Mode Selector Modal */}
-    <AffinityModeSelector
-      isOpen={showAffinityModal}
-      cardType={pendingCardType || cardType}
-      onConfirm={confirmCardTypeChange}
-      onCancel={cancelCardTypeChange}
-    />
+      {/* Affinity Mode Selector Modal */}
+      <AffinityModeSelector
+        isOpen={showAffinityModal}
+        cardType={pendingCardType || cardType}
+        onConfirm={confirmCardTypeChange}
+        onCancel={cancelCardTypeChange}
+      />
+    </>
   );
 }
