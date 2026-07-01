@@ -104,8 +104,8 @@ export default function AffinityModeSelector({
                   <label className="flex items-start gap-3 p-4 rounded-xl border-2 border-outline-variant/20 cursor-pointer hover:border-outline-variant/40 transition-colors">
                     <input
                       type="checkbox"
-                      checked={usePreset}
-                      onChange={(e) => setUsePreset(e.target.checked)}
+                      checked={!usePreset}
+                      onChange={(e) => setUsePreset(!e.target.checked)}
                       disabled={isLoading}
                       className="mt-1 w-4 h-4 cursor-pointer"
                       style={{ accentColor: 'var(--color-primary, #000000)' }}
