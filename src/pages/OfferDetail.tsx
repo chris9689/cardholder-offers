@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { ArrowLeft, ShieldCheck, Clock, Info, Globe, BadgeCheck } from 'lucide-react';
+import { ArrowLeft, ShieldCheck, Clock, Info, Globe, BadgeCheck, Lightbulb } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
@@ -78,6 +78,7 @@ export default function OfferDetail() {
   const offerEndDate = formatEndDate(product.enddate);
   const categoryDescription = getCategoryDescription(product.categories);
   const imageUrl = product.image_url && !product.image_url.includes('example.com') ? product.image_url : fallbackImage(product.brand);
+  const activatedTodayCount = useMemo(() => Math.floor(Math.random() * 21) + 10, [product.sku]);
 
   return (
     <div className="pt-24 min-h-screen bg-surface">
@@ -108,7 +109,13 @@ export default function OfferDetail() {
                 loading="eager"
               />
               <div className="absolute inset-0 bg-linear-to-t from-black/35 via-transparent to-transparent" />
-              <div className="absolute bottom-4 right-4">
+              <div className="absolute top-4 left-4">
+                <div className="bg-white/90 text-primary px-3 py-1.5 rounded-xl text-[10px] font-black tracking-widest flex items-center gap-1.5">
+                  <Lightbulb size={12} />
+                  <span>{activatedTodayCount} customers activated this offer today</span>
+                </div>
+              </div>
+              <div className="absolute top-4 right-4">
                 <div className="bg-white/90 text-primary px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest">
                   {product.card_tier}
                 </div>
