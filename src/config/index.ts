@@ -22,19 +22,19 @@ export interface AffinityPresetItem {
 
 export const AFFINITY_PRESETS: Record<CardType, AffinityPresetItem[]> = {
   Standard: [
-    { attribute: 'categories', values: ['SHOPPING', 'CULINARY', 'ENTERTAINMENT'] },
-    { attribute: 'brand', values: ['MASTERCARD'] },
-    { attribute: 'offer_country', values: ['UNITEDSTATES'] },
+    { attribute: 'categories', values: ['SHOPPING', 'CULINARY'] },
+    { attribute: 'brand', values: ['Walgreens', 'Home Depot'] },
+    { attribute: 'offer_country', values: ['United States'] },
   ],
   Premium: [
-    { attribute: 'categories', values: ['TRAVEL', 'CULINARY', 'ENTERTAINMENT', 'ARTSCULTURE'] },
-    { attribute: 'brand', values: ['MASTERCARD', 'PREMIUM'] },
-    { attribute: 'offer_country', values: ['UNITEDSTATES', 'FRANCE', 'ITALY', 'SPAIN'] },
+    { attribute: 'categories', values: ['TRAVEL', 'ENTERTAINMENT'] },
+    { attribute: 'brand', values: ['Air France','Parc Astérix'] },
+    { attribute: 'offer_country', values: ['France','Italy'] },
   ],
   Black: [
-    { attribute: 'categories', values: ['TRAVEL', 'ENTERTAINMENT', 'ARTSCULTURE', 'CULINARY'] },
-    { attribute: 'brand', values: ['MASTERCARD', 'LUXURY'] },
-    { attribute: 'offer_country', values: ['UNITEDSTATES', 'FRANCE', 'ITALY', 'SPAIN', 'UNITEDARABEMIRATES'] },
+    { attribute: 'categories', values: ['TRAVEL', 'ARTSCULTURE'] },
+    { attribute: 'brand', values: ['Dubai Mall', 'Etihad Airways'] },
+    { attribute: 'offer_country', values: ['United Arab Emirates'] },
   ],
 };
 
