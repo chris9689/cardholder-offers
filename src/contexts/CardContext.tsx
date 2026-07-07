@@ -135,14 +135,16 @@ export function CardProvider({ children }: { children: ReactNode }) {
   const confirmCardTypeChange = async (usePreset: boolean) => {
     if (!pendingCardType) return;
 
+    const nextCardType = pendingCardType;
+
     try {
       // 1. Reset DY session (clear dyid/session from localStorage and cookies)
       resetDySession();
 
-      // 2. Update card type in state and localStorage immediately
-      setCardType(pendingCardType);
+      // 2. Persist the pending tier immediately so a reload can bootstrap from it,
+      // but delay the in-app state update until the new DY session is ready.
       if (typeof window !== 'undefined') {
-        window.localStorage.setItem(CARD_TIER_STORAGE_KEY, pendingCardType);
+        window.localStorage.setItem(CARD_TIER_STORAGE_KEY, nextCardType);
       }
 
       // For a true "fresh" mode, force a full reload to clear DY script in-memory state.
@@ -159,14 +161,16 @@ export function CardProvider({ children }: { children: ReactNode }) {
 
       // 4. Send pageview FIRST to generate fresh dyid and create new session
       // DY backend will generate new dyid and return it in cookies
-      await trackPageview('/', pendingCardType);
+      await trackPageview('/', nextCardType);
 
       // 5. THEN send inform affinity event with the fresh dyid
       // DY script now knows about the new dyid and will associate affinity data with it
       if (usePreset) {
-        const presetData = AFFINITY_PRESETS[pendingCardType];
+        const presetData = AFFINITY_PRESETS[nextCardType];
         await informAffinityPreset(presetData);
       }
+
+      setCardType(nextCardType);
     } catch (error) {
       console.error('Error during card type change:', error);
     } finally {

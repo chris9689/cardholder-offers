@@ -183,6 +183,10 @@ export default function Home() {
     let isMounted = true;
 
     const loadRankedCategories = async () => {
+      if (isMounted) {
+        setIsLoadingCategories(true);
+      }
+
       const affinityProfile = await fetchUserAffinities();
       const ranked = rankCuratedCategories(affinityProfile?.categories, affinityProfile?.uid ?? 'guest-seed');
       if (isMounted) {
@@ -197,7 +201,7 @@ export default function Home() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [cardType]);
 
   const displayName = userVariables?.name ?? USER.name;
   const displayCardType = userVariables?.cardType ?? cardType;
