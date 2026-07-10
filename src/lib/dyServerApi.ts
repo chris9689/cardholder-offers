@@ -88,6 +88,30 @@ const STORAGE_KEYS = {
   session: ['_dyjsession', 'dy'],
 } as const;
 
+// In-memory cache of the active dyid. Guarantees that every choose/event call
+// includes the user identity even if localStorage/cookie persistence lags behind
+// (e.g. immediately after resetDySession + establishFreshDyid). Populated by
+// establishFreshDyid and applyReturnedCookies; consumed by readIdentity.
+let cachedDyid: string | undefined;
+
+function setCachedDyid(dyid: string | undefined): void {
+  if (!dyid) {
+    return;
+  }
+  cachedDyid = dyid;
+  if (typeof window !== 'undefined') {
+    // Mirror into every key readIdentity checks so later reads are consistent
+    window.localStorage.setItem('_dyid', dyid);
+    window.localStorage.setItem('dyid', dyid);
+    window.localStorage.setItem('_dyid_server', dyid);
+    window.localStorage.setItem('dyid_server', dyid);
+  }
+}
+
+function clearCachedDyid(): void {
+  cachedDyid = undefined;
+}
+
 function getCookie(name: string): string | undefined {
   const cookie = document.cookie
     .split('; ')
@@ -125,7 +149,7 @@ function detectDeviceType(): DeviceType {
 }
 
 function readIdentity(): DyIdentity {
-  const dyid = getLocalValue(STORAGE_KEYS.dyid) || getCookie('_dyid');
+  const dyid = getLocalValue(STORAGE_KEYS.dyid) || getCookie('_dyid') || cachedDyid;
   const dyidServer = getLocalValue(STORAGE_KEYS.dyidServer) || getCookie('_dyid_server') || dyid;
   const dySession = getLocalValue(STORAGE_KEYS.session) || getCookie('_dyjsession');
 
@@ -164,10 +188,12 @@ function applyReturnedCookies(cookies: DyCookieRecord[] | undefined): void {
 
     if (cookieRecord.name === '_dyid') {
       window.localStorage.setItem('dyid', cookieRecord.value);
+      cachedDyid = cookieRecord.value;
     }
 
     if (cookieRecord.name === '_dyid_server') {
       window.localStorage.setItem('dyid_server', cookieRecord.value);
+      cachedDyid = cookieRecord.value;
     }
   });
 }
@@ -652,6 +678,9 @@ export function resetDySession(): void {
     document.cookie = `${key}=; path=/; max-age=0; SameSite=Lax`;
   });
 
+  // Clear the in-memory dyid cache so the next choose call generates a fresh identity.
+  clearCachedDyid();
+
   // Note: The DY script may cache identity in memory. The next API call (e.g., trackPageview)
   // will read fresh values from localStorage via readIdentity() and send them to the backend,
   // where a new dyid will be generated if one is not provided.
@@ -782,6 +811,10 @@ export async function establishFreshDyid(pathname: string, cardType: CardType): 
       window.localStorage.getItem('dyid') ||
       window.localStorage.getItem('_dyid') ||
       null;
+
+    // Cache the fresh dyid so every subsequent choose/event call includes the
+    // user identity, even before localStorage/cookies fully settle.
+    setCachedDyid(dyid ?? undefined);
 
     console.debug('establishFreshDyid - resolved dyid:', dyid ? dyid : 'missing');
     return dyid;
