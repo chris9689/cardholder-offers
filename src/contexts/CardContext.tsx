@@ -5,7 +5,7 @@
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { USER, AFFINITY_PRESETS } from '../config';
-import { resetDySession, informAffinityPreset, chooseUserBar } from '../lib/dyServerApi';
+import { resetDySession, informAffinityPreset, establishFreshDyid } from '../lib/dyServerApi';
 
 const CARD_TIER_STORAGE_KEY = 'cardholder.offers.tier';
 const USER_VARIABLES_STORAGE_KEY = 'cardholder.offers.userVariables';
@@ -155,27 +155,23 @@ export function CardProvider({ children }: { children: ReactNode }) {
       }
 
       // For "Start with Preset" mode: 
-      // 1. Reset dyid + call a choose endpoint to get fresh dyid from DY
-      // 2. Wait to ensure dyid is stored in localStorage
-      // 3. Send affinity preset data with the fresh dyid
+      // 1. Reset dyid, then call a choose endpoint to get a fresh dyid from DY
+      // 2. Send affinity preset data with the fresh dyid (passed explicitly)
+      // 3. Give DY time to register the affinity before choose calls fire
       if (usePreset) {
         // Small delay to ensure cookies are cleared
         await new Promise((resolve) => setTimeout(resolve, 50));
 
-        // Call chooseUserBar (a choose endpoint) to get fresh dyid from DY
-        // choose endpoints return identity info, unlike collect/pageview
-        await chooseUserBar('/', nextCardType);
+        // Call choose endpoint and extract the fresh dyid directly from the response
+        const freshDyid = await establishFreshDyid('/', nextCardType);
 
-        // Wait to ensure the dyid is now in localStorage
-        await new Promise((resolve) => setTimeout(resolve, 100));
-
-        // Now send affinity preset data with the fresh dyid
+        // Send affinity preset data with the fresh dyid passed explicitly
         const presetData = AFFINITY_PRESETS[nextCardType];
-        await informAffinityPreset(presetData);
+        await informAffinityPreset(presetData, freshDyid ?? undefined);
 
         // Wait for DY to process and register the affinity event before
         // triggering the choose calls in Home component
-        await new Promise((resolve) => setTimeout(resolve, 300));
+        await new Promise((resolve) => setTimeout(resolve, 800));
       }
 
       setCardType(nextCardType);

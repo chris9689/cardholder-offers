@@ -657,22 +657,27 @@ export function resetDySession(): void {
   // where a new dyid will be generated if one is not provided.
 }
 
-export async function informAffinityPreset(affinityData: AffinityPresetItem[]): Promise<void> {
+export async function informAffinityPreset(affinityData: AffinityPresetItem[], explicitDyid?: string): Promise<void> {
   if (typeof window === 'undefined') {
     return;
   }
 
-  // Try to read dyid from localStorage first (set by chooseUserBar via applyReturnedCookies)
-  // Fall back to readIdentity() which checks multiple locations
-  let dyid = window.localStorage.getItem('dyid') || window.localStorage.getItem('_dyid');
-  
+  // Prefer an explicitly-passed dyid (extracted directly from a fresh choose response).
+  // Fall back to localStorage, then readIdentity().
+  let dyid =
+    explicitDyid ||
+    window.localStorage.getItem('dyid') ||
+    window.localStorage.getItem('_dyid') ||
+    window.localStorage.getItem('dyid_server') ||
+    window.localStorage.getItem('_dyid_server') ||
+    undefined;
+
   if (!dyid) {
-    // Fall back to readIdentity to check cookies and other sources
     const identity = readIdentity();
     dyid = identity.user.dyid;
   }
 
-  console.debug('informAffinityPreset - dyid:', dyid ? 'present' : 'missing');
+  console.debug('informAffinityPreset - dyid:', dyid ? dyid : 'missing');
 
   const identity = readIdentity();
 
@@ -709,7 +714,7 @@ export async function informAffinityPreset(affinityData: AffinityPresetItem[]): 
 
   try {
     console.debug('Sending informAffinityPreset payload:', JSON.stringify(payload, null, 2));
-    
+
     const response = await fetch('/api/dy/engagement', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
@@ -727,6 +732,63 @@ export async function informAffinityPreset(affinityData: AffinityPresetItem[]): 
     }
   } catch (error) {
     console.error('Failed to inform affinity preset:', error);
+  }
+}
+
+/**
+ * Resets the DY session and establishes a fresh identity by calling a choose
+ * endpoint. Returns the freshly-generated dyid extracted directly from the
+ * choose response cookies (avoids localStorage timing races).
+ */
+export async function establishFreshDyid(pathname: string, cardType: CardType): Promise<string | null> {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  const payload = {
+    ...buildBasePayload(pathname, cardType),
+    selector: {
+      names: ['User Status Bar API'],
+    },
+    options: {
+      isImplicitPageview: true,
+      returnAnalyticsMetadata: false,
+      isImplicitImpressionMode: true,
+      isImplicitClientData: false,
+    },
+  };
+
+  try {
+    const response = await fetch('/api/dy/choose', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload),
+      credentials: 'same-origin',
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const body = await response.json();
+    applyReturnedCookies(body?.cookies);
+
+    // Extract the fresh dyid directly from the returned cookies
+    const cookies: DyCookieRecord[] = Array.isArray(body?.cookies) ? body.cookies : [];
+    const dyidCookie =
+      cookies.find((c) => c.name === '_dyid_server') || cookies.find((c) => c.name === '_dyid');
+
+    const dyid =
+      dyidCookie?.value ||
+      window.localStorage.getItem('dyid') ||
+      window.localStorage.getItem('_dyid') ||
+      null;
+
+    console.debug('establishFreshDyid - resolved dyid:', dyid ? dyid : 'missing');
+    return dyid;
+  } catch (error) {
+    console.error('Failed to establish fresh dyid:', error);
+    return null;
   }
 }
 
