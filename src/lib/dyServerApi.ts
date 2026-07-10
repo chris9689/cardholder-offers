@@ -682,8 +682,9 @@ export async function informAffinityPreset(affinityData: AffinityPresetItem[]): 
         type: detectDeviceType(),
       },
     },
-    events: [
+    engagements: [
       {
+        type: 'EVENT',
         name: 'Inform Affinity',
         properties: {
           dyType: 'inform-affinity-v1',
