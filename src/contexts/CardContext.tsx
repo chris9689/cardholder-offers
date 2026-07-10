@@ -171,6 +171,10 @@ export function CardProvider({ children }: { children: ReactNode }) {
         // Now send affinity preset data with the fresh dyid
         const presetData = AFFINITY_PRESETS[nextCardType];
         await informAffinityPreset(presetData);
+
+        // Wait for DY to process and register the affinity event before
+        // triggering the choose calls in Home component
+        await new Promise((resolve) => setTimeout(resolve, 300));
       }
 
       setCardType(nextCardType);
