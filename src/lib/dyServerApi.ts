@@ -662,20 +662,24 @@ export async function informAffinityPreset(affinityData: AffinityPresetItem[]): 
     return;
   }
 
-  // Explicitly read dyid from localStorage (set by chooseUserBar via applyReturnedCookies)
-  const dyid = window.localStorage.getItem('dyid') || window.localStorage.getItem('_dyid');
+  // Try to read dyid from localStorage first (set by chooseUserBar via applyReturnedCookies)
+  // Fall back to readIdentity() which checks multiple locations
+  let dyid = window.localStorage.getItem('dyid') || window.localStorage.getItem('_dyid');
   
   if (!dyid) {
-    console.error('informAffinityPreset: dyid not found in localStorage');
-    return;
+    // Fall back to readIdentity to check cookies and other sources
+    const identity = readIdentity();
+    dyid = identity.user.dyid;
   }
+
+  console.debug('informAffinityPreset - dyid:', dyid ? 'present' : 'missing');
 
   const identity = readIdentity();
 
   const payload = {
     user: {
-      dyid,
-      dyid_server: dyid,
+      dyid: dyid || undefined,
+      dyid_server: dyid || undefined,
       active_consent_accepted: true,
     },
     session: identity.session,
@@ -704,6 +708,8 @@ export async function informAffinityPreset(affinityData: AffinityPresetItem[]): 
   };
 
   try {
+    console.debug('Sending informAffinityPreset payload:', JSON.stringify(payload, null, 2));
+    
     const response = await fetch('/api/dy/engagement', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
@@ -711,9 +717,13 @@ export async function informAffinityPreset(affinityData: AffinityPresetItem[]): 
       credentials: 'same-origin',
     });
 
+    console.debug('informAffinityPreset response status:', response.status);
+
     if (response.ok) {
       const body = await response.json();
       applyReturnedCookies(body?.cookies);
+    } else {
+      console.error('informAffinityPreset failed with status:', response.status);
     }
   } catch (error) {
     console.error('Failed to inform affinity preset:', error);
