@@ -209,12 +209,19 @@ export default function Home() {
 
   const allFeedOffers = getAllProducts().filter((offer) => offer.in_stock);
   const tierEligibleOffers = allFeedOffers.filter((offer) => offer.card_tier === displayCardType);
-  const availableCountries = Array.from(new Set(tierEligibleOffers.map((offer) => offer.offer_country).filter(Boolean)));
-  const featuredCountry = resolveFeaturedCountry(
-    availableCountries,
-    affinityProfile?.countries ?? {},
-    affinityProfile?.uid ?? displayName,
-  );
+
+  const isStandard = displayCardType === 'Standard';
+
+  const availableCountries = isStandard
+    ? ['UNITEDSTATES']
+    : Array.from(new Set(tierEligibleOffers.map((offer) => offer.offer_country).filter(Boolean)));
+  const featuredCountry = isStandard
+    ? 'UNITEDSTATES'
+    : resolveFeaturedCountry(
+        availableCountries,
+        affinityProfile?.countries ?? {},
+        affinityProfile?.uid ?? displayName,
+      );
   const featuredCountryOffers = featuredCountry
     ? tierEligibleOffers.filter((offer) => offer.offer_country === featuredCountry)
     : [];
@@ -245,7 +252,7 @@ export default function Home() {
         </div>
       </section>
 
-      <Hero banner={homepageData?.heroBanner} />
+      <Hero banner={homepageData?.heroBanner} isLoading={isLoadingHomepage} />
       
       <div className="px-margin-mobile md:px-margin-desktop mb-20 pt-24 max-w-5xl mx-auto w-full">
         <SearchFilters />
@@ -358,7 +365,9 @@ export default function Home() {
         <div className="grid lg:grid-cols-12 gap-8 items-stretch">
           <div className="lg:col-span-7">
             <span className="font-sans text-xs font-bold text-secondary uppercase tracking-[0.3em] mb-3 block">Featured Offers</span>
-            <h2 className="text-3xl md:text-4xl text-primary mb-3">Explore Offers In {featuredCountry}</h2>
+            <h2 className="text-3xl md:text-4xl text-primary mb-3">
+              {isStandard ? 'Explore Offers Nearby' : `Explore Offers In ${featuredCountry}`}
+            </h2>
             <p className="font-sans text-on-surface-variant mb-8 text-base leading-relaxed font-light">
               
             </p>

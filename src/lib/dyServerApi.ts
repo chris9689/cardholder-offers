@@ -662,20 +662,52 @@ export async function informAffinityPreset(affinityData: AffinityPresetItem[]): 
     return;
   }
 
-  // Send inform-affinity event via DY.API if available
-  if (window.DY?.API) {
-    try {
-      window.DY.API('event', {
+  // Use the server-side engagement API with the dyid that was JUST established by
+  // trackPageview. This avoids the identity mismatch that occurs when window.DY.API
+  // (the client-side SDK) sends the event using its own stale in-memory dyid, which
+  // differs from the new server-generated dyid now stored in localStorage.
+  const identity = readIdentity();
+
+  const payload = {
+    user: identity.user,
+    session: identity.session,
+    context: {
+      page: {
+        type: 'OTHER',
+        location: window.location.href,
+        data: [],
+      },
+      device: {
+        userAgent: navigator.userAgent,
+        type: detectDeviceType(),
+      },
+    },
+    events: [
+      {
         name: 'Inform Affinity',
         properties: {
           dyType: 'inform-affinity-v1',
           source: 'tier-preset-selection',
           data: affinityData,
         },
-      });
-    } catch (error) {
-      console.error('Failed to inform affinity preset:', error);
+      },
+    ],
+  };
+
+  try {
+    const response = await fetch('/api/dy/engagement', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload),
+      credentials: 'same-origin',
+    });
+
+    if (response.ok) {
+      const body = await response.json();
+      applyReturnedCookies(body?.cookies);
     }
+  } catch (error) {
+    console.error('Failed to inform affinity preset:', error);
   }
 }
 

@@ -23,6 +23,35 @@ export function SkeletonCategoryCard() {
   );
 }
 
+export function SkeletonHero() {
+  return (
+    <div className="w-full max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop mt-8">
+      <div className="relative w-full h-[460px] md:h-[540px] rounded-4xl md:rounded-[48px] overflow-hidden bg-surface-container animate-pulse">
+        {/* Shimmer overlay */}
+        <div className="absolute inset-0 bg-linear-to-r from-surface-container via-surface-high to-surface-container bg-size-[200%_100%] animate-[shimmer_1.6s_ease-in-out_infinite]" />
+        {/* Ghost text block */}
+        <div className="absolute inset-0 flex items-center px-8 md:px-20">
+          <div className="max-w-xl space-y-5">
+            <div className="h-3 w-32 rounded-full bg-surface-highest" />
+            <div className="space-y-3">
+              <div className="h-10 md:h-16 w-72 md:w-96 rounded-xl bg-surface-highest" />
+              <div className="h-10 md:h-16 w-56 md:w-72 rounded-xl bg-surface-highest" />
+            </div>
+            <div className="space-y-2 pt-1">
+              <div className="h-3 w-64 rounded-full bg-surface-highest" />
+              <div className="h-3 w-48 rounded-full bg-surface-highest" />
+            </div>
+            <div className="flex gap-3 pt-2">
+              <div className="h-11 w-40 rounded-full bg-surface-highest" />
+              <div className="h-11 w-28 rounded-full bg-surface-highest" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function SkeletonFeaturedOffer() {
   return (
     <div className="bg-white rounded-3xl border border-outline-variant/15 p-4 md:p-5 animate-pulse">

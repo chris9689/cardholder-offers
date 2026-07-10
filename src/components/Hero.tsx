@@ -9,9 +9,11 @@ import { motion } from 'motion/react';
 import { Link, useLocation } from 'react-router-dom';
 import { useCard } from '../contexts/CardContext';
 import { chooseHeroBanner, HeroBannerPayload } from '../lib/dyServerApi';
+import { SkeletonHero } from './SkeletonCard';
 
 interface HeroProps {
   banner?: HeroBannerPayload | null;
+  isLoading?: boolean;
 }
 
 const FALLBACK_BANNER: HeroBannerPayload = {
@@ -35,14 +37,14 @@ function resolveLink(link: string | undefined): string {
   return link.startsWith('/') ? link : `/${link}`;
 }
 
-export default function Hero({ banner: bannerProp }: HeroProps) {
+export default function Hero({ banner: bannerProp, isLoading = false }: HeroProps) {
   const { pathname } = useLocation();
   const { cardType } = useCard();
   const [fetchedBanner, setFetchedBanner] = useState<HeroBannerPayload | null>(null);
 
   useEffect(() => {
-    // Skip self-fetch when parent already provides the banner
-    if (bannerProp !== undefined) return;
+    // Skip self-fetch when parent already provides the banner, or parent is still loading
+    if (bannerProp !== undefined || isLoading) return;
 
     let isMounted = true;
 
@@ -58,9 +60,13 @@ export default function Hero({ banner: bannerProp }: HeroProps) {
     return () => {
       isMounted = false;
     };
-  }, [pathname, cardType, bannerProp]);
+  }, [pathname, cardType, bannerProp, isLoading]);
 
   const banner = bannerProp !== undefined ? bannerProp : fetchedBanner;
+
+  if (isLoading) {
+    return <SkeletonHero />;
+  }
 
   const activeBanner = useMemo(() => ({ ...FALLBACK_BANNER, ...(banner || {}) }), [banner]);
   const heroLink = resolveLink(activeBanner.link);
