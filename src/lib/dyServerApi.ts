@@ -699,9 +699,8 @@ export async function informAffinityPreset(affinityData: AffinityPresetItem[], e
         type: detectDeviceType(),
       },
     },
-    engagements: [
+    events: [
       {
-        type: 'EVENT',
         name: 'Inform Affinity',
         properties: {
           dyType: 'inform-affinity-v1',
@@ -715,7 +714,7 @@ export async function informAffinityPreset(affinityData: AffinityPresetItem[], e
   try {
     console.debug('Sending informAffinityPreset payload:', JSON.stringify(payload, null, 2));
 
-    const response = await fetch('/api/dy/engagement', {
+    const response = await fetch('/api/dy/event', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify(payload),

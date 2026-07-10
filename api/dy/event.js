@@ -8,11 +8,11 @@ export default async function handler(req, res) {
 
   try {
     const payload = await getRequestBody(req);
-    const result = await callDy('/collect/user/engagement', payload);
+    const result = await callDy('/collect/user/event', payload);
 
     if (!result.ok) {
       json(res, result.status, {
-        error: 'Dynamic Yield engagement call failed',
+        error: 'Dynamic Yield event call failed',
         details: result.body,
       });
       return;
