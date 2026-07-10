@@ -662,13 +662,22 @@ export async function informAffinityPreset(affinityData: AffinityPresetItem[]): 
     return;
   }
 
-  // Use the server-side engagement API with the dyid that was established by
-  // calling a choose endpoint (e.g. chooseUserBar). choose endpoints return
-  // identity info in the response, unlike collect endpoints.
+  // Explicitly read dyid from localStorage (set by chooseUserBar via applyReturnedCookies)
+  const dyid = window.localStorage.getItem('dyid') || window.localStorage.getItem('_dyid');
+  
+  if (!dyid) {
+    console.error('informAffinityPreset: dyid not found in localStorage');
+    return;
+  }
+
   const identity = readIdentity();
 
   const payload = {
-    user: identity.user,
+    user: {
+      dyid,
+      dyid_server: dyid,
+      active_consent_accepted: true,
+    },
     session: identity.session,
     context: {
       page: {
