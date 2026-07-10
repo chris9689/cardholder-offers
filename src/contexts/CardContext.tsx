@@ -5,7 +5,7 @@
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { USER, AFFINITY_PRESETS } from '../config';
-import { resetDySession, informAffinityPreset, trackPageview } from '../lib/dyServerApi';
+import { resetDySession, informAffinityPreset, chooseUserBar } from '../lib/dyServerApi';
 
 const CARD_TIER_STORAGE_KEY = 'cardholder.offers.tier';
 const USER_VARIABLES_STORAGE_KEY = 'cardholder.offers.userVariables';
@@ -155,17 +155,18 @@ export function CardProvider({ children }: { children: ReactNode }) {
       }
 
       // For "Start with Preset" mode: 
-      // 1. Reset dyid + call trackPageview to establish fresh dyid/session
+      // 1. Reset dyid + call a choose endpoint to get fresh dyid from DY
       // 2. Wait to ensure dyid is stored in localStorage
       // 3. Send affinity preset data with the fresh dyid
       if (usePreset) {
         // Small delay to ensure cookies are cleared
         await new Promise((resolve) => setTimeout(resolve, 50));
 
-        // Call trackPageview to get fresh dyid from DY and store in localStorage
-        await trackPageview('/', nextCardType);
+        // Call chooseUserBar (a choose endpoint) to get fresh dyid from DY
+        // choose endpoints return identity info, unlike collect/pageview
+        await chooseUserBar('/', nextCardType);
 
-        // Wait a bit to ensure the dyid is now in localStorage
+        // Wait to ensure the dyid is now in localStorage
         await new Promise((resolve) => setTimeout(resolve, 100));
 
         // Now send affinity preset data with the fresh dyid

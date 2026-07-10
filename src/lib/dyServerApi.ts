@@ -662,10 +662,9 @@ export async function informAffinityPreset(affinityData: AffinityPresetItem[]): 
     return;
   }
 
-  // Use the server-side engagement API with the dyid that was JUST established by
-  // trackPageview. This avoids the identity mismatch that occurs when window.DY.API
-  // (the client-side SDK) sends the event using its own stale in-memory dyid, which
-  // differs from the new server-generated dyid now stored in localStorage.
+  // Use the server-side engagement API with the dyid that was established by
+  // calling a choose endpoint (e.g. chooseUserBar). choose endpoints return
+  // identity info in the response, unlike collect endpoints.
   const identity = readIdentity();
 
   const payload = {
