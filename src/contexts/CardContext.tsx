@@ -138,34 +138,26 @@ export function CardProvider({ children }: { children: ReactNode }) {
     const nextCardType = pendingCardType;
 
     try {
-      // 1. Reset DY session (clear dyid/session from localStorage and cookies)
-      resetDySession();
-
-      // 2. Persist the pending tier immediately so a reload can bootstrap from it,
-      // but delay the in-app state update until the new DY session is ready.
+      // Persist the pending tier immediately so a reload can bootstrap from it
       if (typeof window !== 'undefined') {
         window.localStorage.setItem(CARD_TIER_STORAGE_KEY, nextCardType);
       }
 
-      // For a true "fresh" mode, force a full reload to clear DY script in-memory state.
-      // This mirrors the manual behavior where refresh was required to reset affinities.
+      // For "Start Fresh" mode: reset DY session and reload to clear affinities
       if (!usePreset && typeof window !== 'undefined') {
+        resetDySession();
         setShowAffinityModal(false);
         setPendingCardType(null);
         window.location.reload();
         return;
       }
 
-      // 3. Small delay to ensure cookies are cleared before next API call
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
-      // 4. Send pageview FIRST to generate fresh dyid and create new session
-      // DY backend will generate new dyid and return it in cookies
-      await trackPageview('/', nextCardType);
-
-      // 5. THEN send inform affinity event with the fresh dyid
-      // DY script now knows about the new dyid and will associate affinity data with it
+      // For "Start with Preset" mode: keep existing dyid, just update tier and send affinity data
       if (usePreset) {
+        // Send pageview with new tier
+        await trackPageview('/', nextCardType);
+
+        // Send affinity preset data with the same dyid
         const presetData = AFFINITY_PRESETS[nextCardType];
         await informAffinityPreset(presetData);
       }
