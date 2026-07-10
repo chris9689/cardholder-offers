@@ -64,15 +64,15 @@ export default function Hero({ banner: bannerProp, isLoading = false }: HeroProp
 
   const banner = bannerProp !== undefined ? bannerProp : fetchedBanner;
 
-  if (isLoading) {
-    return <SkeletonHero />;
-  }
-
   const activeBanner = useMemo(() => ({ ...FALLBACK_BANNER, ...(banner || {}) }), [banner]);
   const heroLink = resolveLink(activeBanner.link);
   const titleSegments = (activeBanner.title || FALLBACK_BANNER.title || '').split(' ');
   const titleFirstLine = titleSegments.slice(0, Math.max(1, Math.ceil(titleSegments.length / 2))).join(' ');
   const titleSecondLine = titleSegments.slice(Math.max(1, Math.ceil(titleSegments.length / 2))).join(' ');
+
+  if (isLoading) {
+    return <SkeletonHero />;
+  }
 
   return (
     <div className="w-full max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop mt-8">
