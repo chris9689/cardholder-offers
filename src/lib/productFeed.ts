@@ -115,6 +115,22 @@ export function getProductBySku(sku: string): ProductFeedItem | undefined {
   return parsedProducts.find((product) => product.sku === sku);
 }
 
+/**
+ * Returns the distinct list of countries that appear in the product feed
+ * (in-stock offers only), sorted alphabetically. Used to populate the
+ * country selection dropdown so only countries backed by real offers are
+ * selectable.
+ */
+export function getFeedCountries(): string[] {
+  const countries = new Set<string>();
+  for (const product of parsedProducts) {
+    if (product.in_stock && product.offer_country) {
+      countries.add(product.offer_country);
+    }
+  }
+  return Array.from(countries).sort((a, b) => a.localeCompare(b));
+}
+
 export function getCategoryDescription(category: string): string {
   return CATEGORY_DESCRIPTIONS[category] || 'Discover curated cardholder value tailored to your lifestyle and spending preferences.';
 }

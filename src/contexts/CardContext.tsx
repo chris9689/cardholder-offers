@@ -5,10 +5,14 @@
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { USER, AFFINITY_PRESETS } from '../config';
-import { resetDySession, informAffinityPreset, establishFreshDyid } from '../lib/dyServerApi';
+import { resetDySession, informAffinityPreset, establishFreshDyid, setDySelectedCountry } from '../lib/dyServerApi';
 
 const CARD_TIER_STORAGE_KEY = 'cardholder.offers.tier';
 const USER_VARIABLES_STORAGE_KEY = 'cardholder.offers.userVariables';
+const SELECTED_COUNTRY_STORAGE_KEY = 'cardholder.offers.selectedCountry';
+
+// Sentinel value representing "Everywhere" (no country filter).
+export const COUNTRY_EVERYWHERE = 'Everywhere';
 
 function isCardType(value: string): value is CardType {
   return value === 'Standard' || value === 'Premium' || value === 'Black';
@@ -50,6 +54,8 @@ function parseStoredUserVariables(raw: string | null): UserVariables | null {
 interface CardContextType {
   cardType: CardType;
   setCardType: (type: CardType) => void;
+  selectedCountry: string;
+  setSelectedCountry: (country: string) => void;
   isAgentOpen: boolean;
   setIsAgentOpen: (open: boolean) => void;
   points: number;
@@ -74,6 +80,17 @@ export function CardProvider({ children }: { children: ReactNode }) {
     const storedTier = window.localStorage.getItem(CARD_TIER_STORAGE_KEY);
     return storedTier && isCardType(storedTier) ? storedTier : USER.defaultCardType;
   });
+  const [selectedCountry, setSelectedCountry] = useState<string>(() => {
+    if (typeof window === 'undefined') {
+      return COUNTRY_EVERYWHERE;
+    }
+    const stored = window.localStorage.getItem(SELECTED_COUNTRY_STORAGE_KEY) || COUNTRY_EVERYWHERE;
+    // Seed the DY layer synchronously during initial render so the very first
+    // API calls (fired from child effects, which run before parent effects)
+    // already include the persisted country attribute.
+    setDySelectedCountry(stored === COUNTRY_EVERYWHERE ? undefined : stored);
+    return stored;
+  });
   const [isAgentOpen, setIsAgentOpen] = useState(false);
   const [points, setPoints] = useState(USER.initialPoints);
   const [userVariables, setUserVariables] = useState<UserVariables | null>(() => {
@@ -93,6 +110,15 @@ export function CardProvider({ children }: { children: ReactNode }) {
 
     window.localStorage.setItem(CARD_TIER_STORAGE_KEY, cardType);
   }, [cardType]);
+
+  useEffect(() => {
+    // Sync the selected country into the DY API layer so it is attached as a
+    // custom attribute on every request, and persist it across sessions.
+    setDySelectedCountry(selectedCountry === COUNTRY_EVERYWHERE ? undefined : selectedCountry);
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(SELECTED_COUNTRY_STORAGE_KEY, selectedCountry);
+    }
+  }, [selectedCountry]);
 
   useEffect(() => {
     setUserVariables((prev) => {
@@ -189,6 +215,8 @@ export function CardProvider({ children }: { children: ReactNode }) {
       value={{
         cardType,
         setCardType,
+        selectedCountry,
+        setSelectedCountry,
         isAgentOpen,
         setIsAgentOpen,
         points,

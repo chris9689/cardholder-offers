@@ -112,6 +112,15 @@ function clearCachedDyid(): void {
   cachedDyid = undefined;
 }
 
+// The currently selected country (e.g. 'Italy'), persisted via CardContext and
+// synced here so it can be attached as a custom attribute to every DY API call.
+// `undefined` means "Everywhere" (no country filter).
+let selectedCountry: string | undefined;
+
+export function setDySelectedCountry(country: string | null | undefined): void {
+  selectedCountry = country && country.trim().length > 0 ? country : undefined;
+}
+
 function getCookie(name: string): string | undefined {
   const cookie = document.cookie
     .split('; ')
@@ -220,10 +229,12 @@ function buildBasePayload(pathname: string, cardType: CardType) {
         tier: cardType,
         card_tier: cardType,
         selected_tier: cardType,
+        ...(selectedCountry ? { country: selectedCountry } : {}),
       },
       customAttributes: {
         tier: cardType,
         card_tier: cardType,
+        ...(selectedCountry ? { country: selectedCountry } : {}),
       },
     },
   };

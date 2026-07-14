@@ -11,6 +11,7 @@ import SearchFilters from '../components/SearchFilters';
 import OfferCard from '../components/OfferCard';
 import DyOfferCard from '../components/DyOfferCard';
 import CategoryCard from '../components/CategoryCard';
+import CountrySelector from '../components/CountrySelector';
 import { SkeletonOfferCard, SkeletonCategoryCard, SkeletonFeaturedOffer } from '../components/SkeletonCard';
 import { OFFERS, CATEGORIES, CuratedCategory, rankCuratedCategories } from '../data/offers';
 import { useCard } from '../contexts/CardContext';
@@ -125,7 +126,7 @@ function getCountryHeroImage(country: string, countryOffers: ReturnType<typeof g
 }
 
 export default function Home() {
-  const { cardType, userVariables, setUserVariables } = useCard();
+  const { cardType, selectedCountry, userVariables, setUserVariables } = useCard();
   const { pathname } = useLocation();
   const [homepageData, setHomepageData] = useState<HomepageChoiceResult | null>(null);
   const [isLoadingHomepage, setIsLoadingHomepage] = useState(true);
@@ -215,8 +216,14 @@ export default function Home() {
   const availableCountries = isStandard
     ? ['UNITEDSTATES']
     : Array.from(new Set(tierEligibleOffers.map((offer) => offer.offer_country).filter(Boolean)));
+  // When a specific country is selected, the featured offers element is filtered
+  // to that country. "Everywhere" falls back to the top affinity country (today's behavior).
+  const hasCountrySelection =
+    selectedCountry !== 'Everywhere' && availableCountries.includes(selectedCountry);
   const featuredCountry = isStandard
     ? 'UNITEDSTATES'
+    : hasCountrySelection
+    ? selectedCountry
     : resolveFeaturedCountry(
         availableCountries,
         affinityProfile?.countries ?? {},
@@ -245,10 +252,9 @@ export default function Home() {
             {displayCardType} Cardholder
             </p>
           </div>
-          <Link to="/offers" className="flex items-center gap-1.5 text-secondary font-sans text-[10px] font-black uppercase tracking-[0.2em] group">
-            Explore Offers
-            <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-          </Link>
+          <div className="shrink-0">
+            <CountrySelector />
+          </div>
         </div>
       </section>
 
