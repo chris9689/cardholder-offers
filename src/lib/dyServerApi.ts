@@ -225,7 +225,7 @@ function buildBasePayload(pathname: string, cardType: CardType) {
         userAgent: navigator.userAgent,
         type: detectDeviceType(),
       },
-      customAttributes: {
+      pageAttributes: {
         card_tier: cardType,
         ...(selectedCountry ? { country: selectedCountry } : {}),
       },
@@ -480,7 +480,7 @@ export async function performDySearch(
         userAgent: navigator.userAgent,
         type: detectDeviceType(),
       },
-      customAttributes: {
+      pageAttributes: {
         card_tier: cardType,
         ...(selectedCountry ? { country: selectedCountry } : {}),
       },
@@ -557,8 +557,8 @@ export async function performShoppingMuse(
     ...basePayload,
     context: {
       ...basePayload.context,
-      customAttributes: {
-        ...basePayload.context.customAttributes,
+      pageAttributes: {
+        ...basePayload.context.pageAttributes,
         ...(userVariables
           ? {
               user_name: userVariables.name,
