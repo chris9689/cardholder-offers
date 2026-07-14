@@ -140,6 +140,7 @@ export default function Home() {
     let isMounted = true;
 
     const load = async () => {
+      setIsLoadingHomepage(true);
       const result = await chooseHomepageGroup(pathname, cardType);
       if (isMounted) {
         setHomepageData(result);
@@ -153,7 +154,7 @@ export default function Home() {
     return () => {
       isMounted = false;
     };
-  }, [pathname, cardType]);
+  }, [pathname, cardType, selectedCountry]);
 
   const PAGE_SIZE = 9;
   const slots = homepageData?.recommendations ?? [];

@@ -225,14 +225,7 @@ function buildBasePayload(pathname: string, cardType: CardType) {
         userAgent: navigator.userAgent,
         type: detectDeviceType(),
       },
-      pageAttributes: {
-        tier: cardType,
-        card_tier: cardType,
-        selected_tier: cardType,
-        ...(selectedCountry ? { country: selectedCountry } : {}),
-      },
       customAttributes: {
-        tier: cardType,
         card_tier: cardType,
         ...(selectedCountry ? { country: selectedCountry } : {}),
       },
@@ -487,8 +480,9 @@ export async function performDySearch(
         userAgent: navigator.userAgent,
         type: detectDeviceType(),
       },
-      pageAttributes: {
-        tier: cardType,
+      customAttributes: {
+        card_tier: cardType,
+        ...(selectedCountry ? { country: selectedCountry } : {}),
       },
     },
     selector: {
@@ -563,8 +557,8 @@ export async function performShoppingMuse(
     ...basePayload,
     context: {
       ...basePayload.context,
-      pageAttributes: {
-        ...basePayload.context.pageAttributes,
+      customAttributes: {
+        ...basePayload.context.customAttributes,
         ...(userVariables
           ? {
               user_name: userVariables.name,
