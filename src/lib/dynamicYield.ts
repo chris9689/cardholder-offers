@@ -9,6 +9,7 @@ declare global {
   interface Window {
     DY?: {
       recommendationContext?: DyRecommendationContext;
+      API?: (command: string, payload?: unknown) => unknown;
     };
   }
 }

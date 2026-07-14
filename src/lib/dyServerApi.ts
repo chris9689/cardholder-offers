@@ -691,6 +691,67 @@ export function resetDySession(): void {
   // where a new dyid will be generated if one is not provided.
 }
 
+/**
+ * Waits until the client-side DY script (api_dynamic.js) has loaded and exposed
+ * window.DY.API. Resolves true once available, false on timeout.
+ */
+function waitForDyApi(timeoutMs = 8000): Promise<boolean> {
+  return new Promise((resolve) => {
+    if (typeof window === 'undefined') {
+      resolve(false);
+      return;
+    }
+
+    if (typeof window.DY?.API === 'function') {
+      resolve(true);
+      return;
+    }
+
+    const start = Date.now();
+    const interval = window.setInterval(() => {
+      if (typeof window.DY?.API === 'function') {
+        window.clearInterval(interval);
+        resolve(true);
+      } else if (Date.now() - start > timeoutMs) {
+        window.clearInterval(interval);
+        resolve(false);
+      }
+    }, 100);
+  });
+}
+
+/**
+ * Informs affinity through the client-side DY script (window.DY.API) rather than
+ * the server-side event proxy. This ties the affinity to the SAME identity the
+ * loaded DY script uses (the _dyid it manages), which is also the identity the
+ * server /choose calls read via readIdentity(). Using the client script keeps a
+ * single shared identity so:
+ *   - the affinity actually applies to subsequent recommendations, and
+ *   - DY.ServerUtil.getUserAffinities() (client-side QA check) reflects it.
+ */
+export async function informAffinityPresetClient(affinityData: AffinityPresetItem[]): Promise<void> {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  const ready = await waitForDyApi();
+  if (!ready || typeof window.DY?.API !== 'function') {
+    console.error('informAffinityPresetClient: DY.API not available; affinity not informed');
+    return;
+  }
+
+  window.DY.API('event', {
+    name: 'Inform Affinity',
+    properties: {
+      dyType: 'inform-affinity-v1',
+      source: 'tier-preset-selection',
+      data: affinityData,
+    },
+  });
+
+  console.debug('informAffinityPresetClient - inform affinity sent via client DY.API', affinityData);
+}
+
 export async function informAffinityPreset(affinityData: AffinityPresetItem[], explicitDyid?: string): Promise<void> {
   if (typeof window === 'undefined') {
     return;

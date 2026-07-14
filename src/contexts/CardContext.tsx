@@ -5,11 +5,15 @@
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { USER, AFFINITY_PRESETS } from '../config';
-import { resetDySession, informAffinityPreset, establishFreshDyid, setDySelectedCountry } from '../lib/dyServerApi';
+import { resetDySession, informAffinityPresetClient, setDySelectedCountry } from '../lib/dyServerApi';
 
 const CARD_TIER_STORAGE_KEY = 'cardholder.offers.tier';
 const USER_VARIABLES_STORAGE_KEY = 'cardholder.offers.userVariables';
 const SELECTED_COUNTRY_STORAGE_KEY = 'cardholder.offers.selectedCountry';
+// Session-scoped flag that survives the reload triggered by a preset tier change.
+// Holds the tier whose affinity preset must be informed once the page reloads
+// with a fresh DY identity.
+const PENDING_PRESET_STORAGE_KEY = 'cardholder.offers.pendingPreset';
 
 // Sentinel value representing "Everywhere" (no country filter).
 export const COUNTRY_EVERYWHERE = 'Everywhere';
@@ -62,6 +66,7 @@ interface CardContextType {
   setPoints: (points: number) => void;
   userVariables: UserVariables | null;
   setUserVariables: (value: UserVariables | null) => void;
+  isPreparingSession: boolean;
   showAffinityModal: boolean;
   pendingCardType: CardType | null;
   handleCardTypePending: (type: CardType) => void;
@@ -116,6 +121,54 @@ export function CardProvider({ children }: { children: ReactNode }) {
   });
   const [showAffinityModal, setShowAffinityModal] = useState(false);
   const [pendingCardType, setPendingCardType] = useState<CardType | null>(null);
+  // True while a preset tier change is being applied after a reload: the DY
+  // identity has just been reset and we must inform affinity (client-side)
+  // before any /choose calls fire, otherwise recs would ignore the preset.
+  const [isPreparingSession, setIsPreparingSession] = useState<boolean>(() => {
+    if (typeof window === 'undefined') {
+      return false;
+    }
+    return Boolean(window.sessionStorage.getItem(PENDING_PRESET_STORAGE_KEY));
+  });
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const pendingTier = window.sessionStorage.getItem(PENDING_PRESET_STORAGE_KEY);
+    if (!pendingTier || !isCardType(pendingTier)) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const applyPreset = async () => {
+      try {
+        // Inform affinity through the client DY script so it is tied to the
+        // fresh identity minted after the reload (the same identity the server
+        // /choose calls read). This is what makes the preset actually apply and
+        // become visible via DY.ServerUtil.getUserAffinities().
+        await informAffinityPresetClient(AFFINITY_PRESETS[pendingTier]);
+        // Give DY a moment to register the affinity before choose calls run.
+        await new Promise((resolve) => setTimeout(resolve, 1200));
+      } catch (error) {
+        console.error('Failed to apply affinity preset:', error);
+      } finally {
+        window.sessionStorage.removeItem(PENDING_PRESET_STORAGE_KEY);
+        if (!cancelled) {
+          setIsPreparingSession(false);
+        }
+      }
+    };
+
+    void applyPreset();
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -178,51 +231,37 @@ export function CardProvider({ children }: { children: ReactNode }) {
     const nextCardType = pendingCardType;
 
     try {
-      // Always reset DY session to get a fresh dyid for the new tier demo
+      // Reset the DY identity so the new tier starts from a fresh demo user.
       resetDySession();
 
       // Reset the country selection back to the default ("Everywhere") whenever
       // the tier changes, since the available countries differ per tier.
       setSelectedCountry(COUNTRY_EVERYWHERE);
 
-      // Persist the pending tier immediately
       if (typeof window !== 'undefined') {
+        // Persist the pending tier so it is active after the reload.
         window.localStorage.setItem(CARD_TIER_STORAGE_KEY, nextCardType);
+
+        if (usePreset) {
+          // Flag the preset to be informed (client-side) after the reload, once
+          // the DY script has minted a fresh identity. See the mount effect.
+          window.sessionStorage.setItem(PENDING_PRESET_STORAGE_KEY, nextCardType);
+        } else {
+          window.sessionStorage.removeItem(PENDING_PRESET_STORAGE_KEY);
+        }
       }
 
-      // For "Start Fresh" mode: reload to clear all state and DY script cache
-      if (!usePreset && typeof window !== 'undefined') {
-        setShowAffinityModal(false);
-        setPendingCardType(null);
+      setShowAffinityModal(false);
+      setPendingCardType(null);
+
+      // Reload for both modes: this guarantees the client DY script and the
+      // server /choose calls share one freshly-minted identity. Preset affinity
+      // is then informed client-side against that shared identity after reload.
+      if (typeof window !== 'undefined') {
         window.location.reload();
-        return;
       }
-
-      // For "Start with Preset" mode: 
-      // 1. Reset dyid, then call a choose endpoint to get a fresh dyid from DY
-      // 2. Send affinity preset data with the fresh dyid (passed explicitly)
-      // 3. Give DY time to register the affinity before choose calls fire
-      if (usePreset) {
-        // Small delay to ensure cookies are cleared
-        await new Promise((resolve) => setTimeout(resolve, 50));
-
-        // Call choose endpoint and extract the fresh dyid directly from the response
-        const freshDyid = await establishFreshDyid('/', nextCardType);
-
-        // Send affinity preset data with the fresh dyid passed explicitly
-        const presetData = AFFINITY_PRESETS[nextCardType];
-        await informAffinityPreset(presetData, freshDyid ?? undefined);
-
-        // Wait for DY to process and register the affinity event before
-        // triggering the choose calls in Home component
-        await new Promise((resolve) => setTimeout(resolve, 800));
-      }
-
-      setCardType(nextCardType);
     } catch (error) {
       console.error('Error during card type change:', error);
-    } finally {
-      // Close modal
       setShowAffinityModal(false);
       setPendingCardType(null);
     }
@@ -241,6 +280,7 @@ export function CardProvider({ children }: { children: ReactNode }) {
         setPoints,
         userVariables,
         setUserVariables,
+        isPreparingSession,
         showAffinityModal,
         pendingCardType,
         handleCardTypePending,

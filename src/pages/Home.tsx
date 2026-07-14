@@ -126,7 +126,7 @@ function getCountryHeroImage(country: string, countryOffers: ReturnType<typeof g
 }
 
 export default function Home() {
-  const { cardType, selectedCountry, userVariables, setUserVariables } = useCard();
+  const { cardType, selectedCountry, userVariables, setUserVariables, isPreparingSession } = useCard();
   const { pathname } = useLocation();
   const [homepageData, setHomepageData] = useState<HomepageChoiceResult | null>(null);
   const [isLoadingHomepage, setIsLoadingHomepage] = useState(true);
@@ -137,6 +137,12 @@ export default function Home() {
   const [affinityProfile, setAffinityProfile] = useState<UserAffinityProfile | null>(null);
 
   useEffect(() => {
+    // Wait until any pending preset affinity has been informed after a reload,
+    // otherwise recommendations would be fetched before the affinity applies.
+    if (isPreparingSession) {
+      return;
+    }
+
     let isMounted = true;
 
     const load = async () => {
@@ -154,7 +160,7 @@ export default function Home() {
     return () => {
       isMounted = false;
     };
-  }, [pathname, cardType, selectedCountry]);
+  }, [pathname, cardType, selectedCountry, isPreparingSession]);
 
   const PAGE_SIZE = 9;
   const slots = homepageData?.recommendations ?? [];
@@ -164,6 +170,10 @@ export default function Home() {
   const recsSubtitle = homepageData?.recsSubtitle ?? 'Personalized Picks';
 
   useEffect(() => {
+    if (isPreparingSession) {
+      return;
+    }
+
     let isMounted = true;
 
     const load = async () => {
@@ -179,9 +189,13 @@ export default function Home() {
     return () => {
       isMounted = false;
     };
-  }, [pathname, cardType, setUserVariables]);
+  }, [pathname, cardType, setUserVariables, isPreparingSession]);
 
   useEffect(() => {
+    if (isPreparingSession) {
+      return;
+    }
+
     let isMounted = true;
 
     const loadRankedCategories = async () => {
@@ -203,7 +217,7 @@ export default function Home() {
     return () => {
       isMounted = false;
     };
-  }, [cardType]);
+  }, [cardType, isPreparingSession]);
 
   const displayName = userVariables?.name ?? USER.name;
   const displayCardType = userVariables?.cardType ?? cardType;
