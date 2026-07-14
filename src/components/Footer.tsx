@@ -18,7 +18,7 @@ export default function Footer() {
             src={BRAND.logoUrl}
           />
           <p className="font-sans text-on-surface-variant max-w-xs mb-8 leading-relaxed">
-            Crafting exclusive financial experiences for the world's most discerning travelers and connoisseurs.
+            Curating exclusive cardholder offers and savings across dining, travel, shopping, and culture—personalized to your card and the places you love.
           </p>
           <div className="flex gap-6">
             <a href="#" className="text-on-surface-variant hover:text-primary transition-colors"><Globe size={20} /></a>
@@ -28,10 +28,10 @@ export default function Footer() {
         </div>
 
         <div className="flex flex-col gap-4">
-          <span className="font-sans text-sm font-bold text-primary uppercase tracking-widest">Programs</span>
-          <Link to="#" className="font-sans text-on-surface-variant hover:text-primary transition-colors">Elite Benefits</Link>
-          <Link to="#" className="font-sans text-on-surface-variant hover:text-primary transition-colors">Partner Lounge</Link>
-          <Link to="#" className="font-sans text-on-surface-variant hover:text-primary transition-colors">Reward Transfer</Link>
+          <span className="font-sans text-sm font-bold text-primary uppercase tracking-widest">Offers</span>
+          <Link to="#" className="font-sans text-on-surface-variant hover:text-primary transition-colors">Featured Deals</Link>
+          <Link to="#" className="font-sans text-on-surface-variant hover:text-primary transition-colors">Partner Merchants</Link>
+          <Link to="#" className="font-sans text-on-surface-variant hover:text-primary transition-colors">Redeem Rewards</Link>
         </div>
 
         <div className="flex flex-col gap-4">

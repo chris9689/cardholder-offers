@@ -80,7 +80,7 @@ export function CardProvider({ children }: { children: ReactNode }) {
     const storedTier = window.localStorage.getItem(CARD_TIER_STORAGE_KEY);
     return storedTier && isCardType(storedTier) ? storedTier : USER.defaultCardType;
   });
-  const [selectedCountry, setSelectedCountry] = useState<string>(() => {
+  const [selectedCountry, setSelectedCountryState] = useState<string>(() => {
     if (typeof window === 'undefined') {
       return COUNTRY_EVERYWHERE;
     }
@@ -91,6 +91,20 @@ export function CardProvider({ children }: { children: ReactNode }) {
     setDySelectedCountry(stored === COUNTRY_EVERYWHERE ? undefined : stored);
     return stored;
   });
+
+  // Sync the DY API layer synchronously on selection. This MUST happen before
+  // React runs any effects: child effects (e.g. Home's fetch) run before parent
+  // effects, so relying on a parent useEffect to update the DY layer would make
+  // the very next fetch use the previous country (a one-selection lag).
+  const setSelectedCountry = React.useCallback((country: string) => {
+    setDySelectedCountry(country === COUNTRY_EVERYWHERE ? undefined : country);
+    // Persist synchronously so the value survives an immediate page reload
+    // (e.g. the "Start Fresh" tier-change flow reloads before effects run).
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(SELECTED_COUNTRY_STORAGE_KEY, country);
+    }
+    setSelectedCountryState(country);
+  }, []);
   const [isAgentOpen, setIsAgentOpen] = useState(false);
   const [points, setPoints] = useState(USER.initialPoints);
   const [userVariables, setUserVariables] = useState<UserVariables | null>(() => {
@@ -112,9 +126,9 @@ export function CardProvider({ children }: { children: ReactNode }) {
   }, [cardType]);
 
   useEffect(() => {
-    // Sync the selected country into the DY API layer so it is attached as a
-    // custom attribute on every request, and persist it across sessions.
-    setDySelectedCountry(selectedCountry === COUNTRY_EVERYWHERE ? undefined : selectedCountry);
+    // Persist the selected country across sessions. The DY API layer is updated
+    // synchronously in setSelectedCountry (and seeded on init), so it is not
+    // touched here to avoid the child-before-parent effect ordering lag.
     if (typeof window !== 'undefined') {
       window.localStorage.setItem(SELECTED_COUNTRY_STORAGE_KEY, selectedCountry);
     }
@@ -166,6 +180,10 @@ export function CardProvider({ children }: { children: ReactNode }) {
     try {
       // Always reset DY session to get a fresh dyid for the new tier demo
       resetDySession();
+
+      // Reset the country selection back to the default ("Everywhere") whenever
+      // the tier changes, since the available countries differ per tier.
+      setSelectedCountry(COUNTRY_EVERYWHERE);
 
       // Persist the pending tier immediately
       if (typeof window !== 'undefined') {
