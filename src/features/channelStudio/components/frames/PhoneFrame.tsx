@@ -10,6 +10,7 @@
 import React from 'react';
 import { Signal, Wifi, BatteryFull, Flashlight, Camera } from 'lucide-react';
 import type { DeviceTheme } from '../../types';
+import { APPLE_FONT } from '../../deviceFont';
 
 interface PhoneFrameProps {
   theme: DeviceTheme;
@@ -52,7 +53,7 @@ export default function PhoneFrame({ theme, time = '9:41', date, children }: Pho
       {/* Screen */}
       <div
         className="relative overflow-hidden"
-        style={{ width: '100%', height: '100%', borderRadius: 47, background: WALLPAPERS[theme] }}
+        style={{ width: '100%', height: '100%', borderRadius: 47, background: WALLPAPERS[theme], fontFamily: APPLE_FONT }}
       >
         {/* Status bar */}
         <div

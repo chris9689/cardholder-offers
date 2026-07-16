@@ -20,6 +20,7 @@ import {
   MoreHorizontal,
 } from 'lucide-react';
 import type { EmailContent, DeviceTheme } from '../../types';
+import { APPLE_FONT } from '../../deviceFont';
 
 interface EmailPreviewProps {
   content: EmailContent;
@@ -41,7 +42,7 @@ export default function EmailPreview({ content, theme }: EmailPreviewProps) {
   const blue = '#0a84ff';
 
   return (
-    <div className="w-full h-full flex" style={{ background: surface, fontFamily: '-apple-system, "SF Pro Text", Manrope, sans-serif' }}>
+    <div className="w-full h-full flex" style={{ background: surface, fontFamily: APPLE_FONT }}>
       {/* Sidebar / inbox list */}
       <div className="h-full flex flex-col shrink-0" style={{ width: 300, background: sidebar, borderRight: `1px solid ${border}` }}>
         <div className="flex items-center justify-between" style={{ padding: '14px 16px 8px' }}>

@@ -9,6 +9,7 @@
 import React from 'react';
 import { Wifi, BatteryFull } from 'lucide-react';
 import type { DeviceTheme } from '../../types';
+import { APPLE_FONT } from '../../deviceFont';
 
 interface TabletFrameProps {
   theme: DeviceTheme;
@@ -41,6 +42,7 @@ export default function TabletFrame({ theme, time = '9:41', children }: TabletFr
           height: '100%',
           borderRadius: 22,
           background: isDark ? '#000' : '#fff',
+          fontFamily: APPLE_FONT,
         }}
       >
         {/* Status bar */}
