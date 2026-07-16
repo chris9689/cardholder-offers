@@ -26,6 +26,7 @@ import { USER } from '../../config';
 import { collectContext } from './content/contextCollector';
 import { getProvider } from './content/ContentProvider';
 import { getSegment, DEFAULT_SEGMENT_ID } from './segments/segmentRegistry';
+import { getFeedCountries } from '../../lib/productFeed';
 import type {
   ChannelContent,
   ChannelId,
@@ -78,9 +79,17 @@ export function ChannelStudioProvider({ children }: { children: ReactNode }) {
   const displayName = userVariables?.name ?? USER.name;
   const displayTier = userVariables?.cardType ?? cardType;
 
+  // Default the locale to a country actually backed by real offers in the feed
+  // so the initial preview surfaces genuine offers.
+  const feedCountries = getFeedCountries();
+  const defaultCountry =
+    selectedCountry !== COUNTRY_EVERYWHERE && selectedCountry
+      ? selectedCountry
+      : feedCountries[0] ?? 'United States';
+
   const [config, setConfig] = useState<StudioConfig>({
     tier: displayTier,
-    country: selectedCountry === COUNTRY_EVERYWHERE ? 'United States' : selectedCountry,
+    country: defaultCountry,
     theme: 'dark',
     senderName: 'Spending Offers',
     segmentId: DEFAULT_SEGMENT_ID,

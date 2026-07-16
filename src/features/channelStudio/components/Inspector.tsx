@@ -11,11 +11,15 @@ import React from 'react';
 import { RefreshCw, Sun, Moon } from 'lucide-react';
 import { useChannelStudio } from '../ChannelStudioProvider';
 import { SEGMENTS } from '../segments/segmentRegistry';
+import { getFeedCountries } from '../../../lib/productFeed';
 import type { CardType } from '../../../contexts/CardContext';
 import type { DeviceTheme } from '../types';
 
 const TIERS: CardType[] = ['Standard', 'Premium', 'Black'];
-const COUNTRIES = ['United States', 'France', 'Italy', 'United Arab Emirates', 'Japan'];
+const FALLBACK_COUNTRIES = ['United States', 'France', 'Italy', 'United Arab Emirates', 'Japan'];
+// Prefer the countries that actually back real offers in the products feed.
+const feedCountries = getFeedCountries();
+const COUNTRIES = feedCountries.length > 0 ? feedCountries : FALLBACK_COUNTRIES;
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return <div className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-2.5">{children}</div>;

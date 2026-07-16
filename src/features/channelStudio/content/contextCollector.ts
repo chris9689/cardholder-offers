@@ -12,6 +12,7 @@ import { OFFERS, NEAR_ME_OFFERS, type Offer } from '../../../data/offers';
 import { BRAND } from '../../../config';
 import type { CardType } from '../../../contexts/CardContext';
 import type { GenerationContext, StudioProduct } from '../types';
+import { getFeedStudioProducts } from './feedProducts';
 
 interface CollectInput {
   pathname: string;
@@ -111,8 +112,13 @@ function computeDominantCategory(products: StudioProduct[]): string {
 export function collectContext(input: CollectInput): GenerationContext {
   const { pageType, pageLabel, products: rawProducts } = resolvePage(input.pathname);
 
-  const source = rawProducts.length > 0 ? rawProducts : OFFERS;
-  const products = source.slice(0, 4).map(toStudioProduct);
+  // Prefer real offers from the products.csv feed (filtered by country/tier),
+  // falling back to the page's static offers if the feed yields nothing.
+  const feedProducts = getFeedStudioProducts({ country: input.country, tier: input.cardType });
+  const staticProducts = (rawProducts.length > 0 ? rawProducts : OFFERS).map(toStudioProduct);
+  const pool = feedProducts.length > 0 ? feedProducts : staticProducts;
+
+  const products = pool.slice(0, 4);
   const safeProducts = products.length > 0 ? products : [toStudioProduct(OFFERS[0])];
 
   const firstName = input.userName.split(' ')[0] || input.userName;
