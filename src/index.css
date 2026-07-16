@@ -79,6 +79,38 @@
 .hide-scrollbar::-webkit-scrollbar { display: none; }
 .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
+/* iOS-style thin, semi-transparent overlay scrollbar for device previews. */
+.ios-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(120, 120, 128, 0.4) transparent;
+}
+.ios-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.ios-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.ios-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(120, 120, 128, 0.4);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+.ios-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(120, 120, 128, 0.6);
+  background-clip: content-box;
+}
+.ios-scrollbar.ios-scrollbar-dark {
+  scrollbar-color: rgba(235, 235, 245, 0.35) transparent;
+}
+.ios-scrollbar.ios-scrollbar-dark::-webkit-scrollbar-thumb {
+  background-color: rgba(235, 235, 245, 0.35);
+}
+.ios-scrollbar.ios-scrollbar-dark::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(235, 235, 245, 0.55);
+}
+
 @keyframes shimmer {
   0%   { background-position: 200% 0; }
   100% { background-position: -200% 0; }

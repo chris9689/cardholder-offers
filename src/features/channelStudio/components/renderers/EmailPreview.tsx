@@ -123,7 +123,7 @@ export default function EmailPreview({ content, theme }: EmailPreviewProps) {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35, ease: 'easeOut' }}
-          className="flex-1 overflow-y-auto"
+          className={`flex-1 overflow-y-auto ios-scrollbar${isDark ? ' ios-scrollbar-dark' : ''}`}
         >
           {/* Header meta */}
           <div style={{ padding: '18px 26px 14px', borderBottom: `1px solid ${border}` }}>
