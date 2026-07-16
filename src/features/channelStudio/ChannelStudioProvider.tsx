@@ -25,6 +25,7 @@ import { useCard, COUNTRY_EVERYWHERE } from '../../contexts/CardContext';
 import { USER } from '../../config';
 import { collectContext } from './content/contextCollector';
 import { getProvider } from './content/ContentProvider';
+import { getSegment, DEFAULT_SEGMENT_ID } from './segments/segmentRegistry';
 import type {
   ChannelContent,
   ChannelId,
@@ -82,6 +83,7 @@ export function ChannelStudioProvider({ children }: { children: ReactNode }) {
     country: selectedCountry === COUNTRY_EVERYWHERE ? 'United States' : selectedCountry,
     theme: 'dark',
     senderName: 'Spending Offers',
+    segmentId: DEFAULT_SEGMENT_ID,
   });
 
   const generationToken = useRef(0);
@@ -109,6 +111,7 @@ export function ChannelStudioProvider({ children }: { children: ReactNode }) {
           context: buildContext(base),
           variant,
           senderName: config.senderName,
+          segment: getSegment(config.segmentId),
         });
         if (token !== generationToken.current) {
           return;
@@ -121,7 +124,7 @@ export function ChannelStudioProvider({ children }: { children: ReactNode }) {
         setResults((prev) => ({ ...prev, [channel]: { status: 'error', content: null } }));
       }
     },
-    [buildContext, config.senderName],
+    [buildContext, config.senderName, config.segmentId],
   );
 
   const visibleChannels = useMemo<ChannelId[]>(
@@ -138,7 +141,7 @@ export function ChannelStudioProvider({ children }: { children: ReactNode }) {
       void generate(channel, contextSnapshot, variantIndex);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, contextSnapshot, visibleChannels, variantIndex, config.tier, config.country, config.senderName]);
+  }, [isOpen, contextSnapshot, visibleChannels, variantIndex, config.tier, config.country, config.senderName, config.segmentId]);
 
   const open = useCallback(() => {
     const snapshot = collectContext({

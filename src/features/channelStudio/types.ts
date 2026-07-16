@@ -103,7 +103,74 @@ export interface StudioConfig {
   country: string;
   theme: DeviceTheme;
   senderName: string;
+  segmentId: string;
 }
+
+// ---------------------------------------------------------------------------
+// Segments (backend-configurable audience variants)
+// ---------------------------------------------------------------------------
+
+/**
+ * Tokens available inside segment copy overrides. Use these in the segment
+ * registry to write realistic, personalized copy without touching component
+ * code, e.g. `(v) => `${v.firstName}, ${v.reward} at ${v.brand}``.
+ */
+export interface SegmentTemplateVars {
+  /** Recipient first name, e.g. "Julian". */
+  firstName: string;
+  /** Featured product/merchant brand, e.g. "Rosewood Hotels". */
+  brand: string;
+  /** Reward phrase, e.g. "10% back" or "Room Upgrade". */
+  reward: string;
+  /** Dominant / biased category label, e.g. "Travel". */
+  category: string;
+  /** Card tier, e.g. "Black". */
+  tier: string;
+  /** Locale/country, e.g. "United States". */
+  country: string;
+  /** App/brand name, e.g. "Spending Offers". */
+  brandName: string;
+}
+
+/** A copy override: either a literal string or a function of the tokens. */
+export type SegmentText = string | ((vars: SegmentTemplateVars) => string);
+export type SegmentTextList = string[] | ((vars: SegmentTemplateVars) => string[]);
+
+/** Per-segment push notification copy overrides (all optional). */
+export interface SegmentPushTemplate {
+  title?: SegmentText;
+  body?: SegmentText;
+}
+
+/** Per-segment email copy overrides (all optional). */
+export interface SegmentEmailTemplate {
+  subject?: SegmentText;
+  preheader?: SegmentText;
+  eyebrow?: SegmentText;
+  headline?: SegmentText;
+  body?: SegmentTextList;
+  ctaLabel?: SegmentText;
+  recommendationReason?: SegmentText;
+}
+
+/**
+ * A backend-configurable audience segment. Add or edit these in
+ * segments/segmentRegistry.ts — no component changes required.
+ */
+export interface SegmentDefinition {
+  id: string;
+  label: string;
+  description?: string;
+  /** Overrides the tier-derived voice. */
+  tone?: 'value' | 'premium' | 'concierge';
+  /** Prefers products in this category (by label) when building the preview. */
+  categoryBias?: string;
+  /** Push copy overrides for this segment. */
+  push?: SegmentPushTemplate;
+  /** Email copy overrides for this segment. */
+  email?: SegmentEmailTemplate;
+}
+
 
 /** Declares a channel for the left rail. */
 export interface ChannelDefinition {

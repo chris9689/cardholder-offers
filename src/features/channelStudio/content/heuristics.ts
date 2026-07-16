@@ -14,6 +14,10 @@ import type {
   EmailProduct,
   GenerationContext,
   PushContent,
+  SegmentDefinition,
+  SegmentText,
+  SegmentTextList,
+  SegmentTemplateVars,
   StudioProduct,
 } from '../types';
 
@@ -48,6 +52,54 @@ function tierTone(tier: string): 'value' | 'premium' | 'concierge' {
   return 'value';
 }
 
+/** Resolves a segment override (string | fn) against tokens, or a fallback. */
+function resolveText(override: SegmentText | undefined, vars: SegmentTemplateVars, fallback: string): string {
+  if (override === undefined) {
+    return fallback;
+  }
+  return typeof override === 'function' ? override(vars) : override;
+}
+
+function resolveList(override: SegmentTextList | undefined, vars: SegmentTemplateVars, fallback: string[]): string[] {
+  if (override === undefined) {
+    return fallback;
+  }
+  return typeof override === 'function' ? override(vars) : override;
+}
+
+/** Builds the token bag exposed to segment copy overrides. */
+function buildVars(ctx: GenerationContext, reward: string): SegmentTemplateVars {
+  return {
+    firstName: ctx.user.firstName,
+    brand: ctx.primaryProduct.brand,
+    reward,
+    category: ctx.dominantCategory,
+    tier: ctx.user.cardType,
+    country: ctx.user.country,
+    brandName: ctx.brandName,
+  };
+}
+
+/**
+ * Applies a segment's category bias: surfaces matching products first and
+ * updates the dominant category used in copy. Returns a new context.
+ */
+function applySegmentContext(ctx: GenerationContext, segment: SegmentDefinition): GenerationContext {
+  if (!segment.categoryBias) {
+    return ctx;
+  }
+  const bias = segment.categoryBias.toLowerCase();
+  const matching = ctx.products.filter((product) => product.category.toLowerCase() === bias);
+  if (matching.length === 0) {
+    // No products in the biased category — still steer copy toward it.
+    return { ...ctx, dominantCategory: segment.categoryBias };
+  }
+  const rest = ctx.products.filter((product) => product.category.toLowerCase() !== bias);
+  const products = [...matching, ...rest];
+  return { ...ctx, products, primaryProduct: products[0], dominantCategory: segment.categoryBias };
+}
+
+
 function rewardPhrase(product: StudioProduct): string {
   const value = product.rewardValue;
   switch (product.rewardType) {
@@ -68,11 +120,12 @@ function rewardPhrase(product: StudioProduct): string {
 // Push notification
 // ---------------------------------------------------------------------------
 
-export function generatePush(ctx: GenerationContext, variant: number): PushContent {
-  const rng = seeded(`${ctx.pageType}:${ctx.user.cardType}:push:${variant}`);
+export function generatePush(ctx: GenerationContext, variant: number, segment: SegmentDefinition): PushContent {
+  const rng = seeded(`${ctx.pageType}:${ctx.user.cardType}:${segment.id}:push:${variant}`);
   const product = ctx.primaryProduct;
-  const tone = tierTone(ctx.user.cardType);
+  const tone = segment.tone ?? tierTone(ctx.user.cardType);
   const reward = rewardPhrase(product);
+  const vars = buildVars(ctx, reward);
 
   const titles: string[] = [];
   if (product.rewardType === 'cashback' || product.rewardType === 'credit') {
@@ -99,8 +152,8 @@ export function generatePush(ctx: GenerationContext, variant: number): PushConte
   return {
     appName: ctx.brandName.toUpperCase(),
     appIconText: (ctx.brandName[0] ?? 'M').toUpperCase(),
-    title: pick(titles, rng),
-    body: pick(bodies, rng),
+    title: resolveText(segment.push?.title, vars, pick(titles, rng)),
+    body: resolveText(segment.push?.body, vars, pick(bodies, rng)),
     timeLabel: 'now',
     deeplink: `/offers/${encodeURIComponent(product.id)}`,
   };
@@ -123,11 +176,13 @@ export function generateEmail(
   ctx: GenerationContext,
   variant: number,
   senderName: string,
+  segment: SegmentDefinition,
 ): EmailContent {
-  const rng = seeded(`${ctx.pageType}:${ctx.user.cardType}:email:${variant}`);
+  const rng = seeded(`${ctx.pageType}:${ctx.user.cardType}:${segment.id}:email:${variant}`);
   const product = ctx.primaryProduct;
-  const tone = tierTone(ctx.user.cardType);
+  const tone = segment.tone ?? tierTone(ctx.user.cardType);
   const reward = rewardPhrase(product);
+  const vars = buildVars(ctx, reward);
 
   const subjects = [
     `${ctx.user.firstName}, a ${reward.toLowerCase()} reward picked for your ${ctx.user.cardType} card`,
@@ -153,30 +208,30 @@ export function generateEmail(
     `Your ${ctx.dominantCategory} picks`,
   ];
 
-  const bodies: string[][] = [
-    [
-      `Hi ${ctx.user.firstName},`,
-      tone === 'concierge'
-        ? `Your concierge curated a selection of ${ctx.dominantCategory.toLowerCase()} experiences reserved exclusively for ${ctx.user.cardType} cardholders.`
-        : `Based on your love of ${ctx.dominantCategory.toLowerCase()}, we picked offers we think you'll enjoy — starting with ${reward.toLowerCase()} at ${product.brand}.`,
-      `Activate with your registered card and the reward is applied automatically.`,
-    ],
+  const defaultBody: string[] = [
+    `Hi ${ctx.user.firstName},`,
+    tone === 'concierge'
+      ? `Your concierge curated a selection of ${ctx.dominantCategory.toLowerCase()} experiences reserved exclusively for ${ctx.user.cardType} cardholders.`
+      : `Based on your love of ${ctx.dominantCategory.toLowerCase()}, we picked offers we think you'll enjoy — starting with ${reward.toLowerCase()} at ${product.brand}.`,
+    `Activate with your registered card and the reward is applied automatically.`,
   ];
+
+  const defaultCta = product.rewardType === 'access' || product.rewardType === 'upgrade' ? 'Reserve now' : 'Activate offer';
 
   return {
     senderName,
     senderEmail: `offers@${ctx.brandName.toLowerCase().replace(/\s+/g, '')}.com`,
     senderInitial: (senderName[0] ?? 'S').toUpperCase(),
-    subject: pick(subjects, rng),
-    preheader: pick(preheaders, rng),
+    subject: resolveText(segment.email?.subject, vars, pick(subjects, rng)),
+    preheader: resolveText(segment.email?.preheader, vars, pick(preheaders, rng)),
     timeLabel: '9:41 AM',
     heroImage: product.image,
-    eyebrow: eyebrows[tone],
-    headline: pick(headlines, rng),
-    bodyParagraphs: bodies[0],
+    eyebrow: resolveText(segment.email?.eyebrow, vars, eyebrows[tone]),
+    headline: resolveText(segment.email?.headline, vars, pick(headlines, rng)),
+    bodyParagraphs: resolveList(segment.email?.body, vars, defaultBody),
     products: ctx.products.slice(0, 3).map(toEmailProduct),
-    ctaLabel: product.rewardType === 'access' || product.rewardType === 'upgrade' ? 'Reserve now' : 'Activate offer',
-    recommendationReason: `Because you like ${ctx.dominantCategory}`,
+    ctaLabel: resolveText(segment.email?.ctaLabel, vars, defaultCta),
+    recommendationReason: resolveText(segment.email?.recommendationReason, vars, `Because you like ${ctx.dominantCategory}`),
     footerNote: `Sent to ${ctx.user.firstName} • ${ctx.user.cardType} Card • ${ctx.user.country}`,
   };
 }
@@ -190,9 +245,11 @@ export function generateContent(
   ctx: GenerationContext,
   variant: number,
   senderName: string,
+  segment: SegmentDefinition,
 ): ChannelContent {
+  const segmentCtx = applySegmentContext(ctx, segment);
   if (channel === 'email') {
-    return { channel, email: generateEmail(ctx, variant, senderName) };
+    return { channel, email: generateEmail(segmentCtx, variant, senderName, segment) };
   }
-  return { channel: 'push', push: generatePush(ctx, variant) };
+  return { channel: 'push', push: generatePush(segmentCtx, variant, segment) };
 }

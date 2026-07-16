@@ -10,6 +10,7 @@
 import React from 'react';
 import { RefreshCw, Sun, Moon } from 'lucide-react';
 import { useChannelStudio } from '../ChannelStudioProvider';
+import { SEGMENTS } from '../segments/segmentRegistry';
 import type { CardType } from '../../../contexts/CardContext';
 import type { DeviceTheme } from '../types';
 
@@ -22,6 +23,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 
 export default function Inspector() {
   const { config, updateConfig, regenerate, contextSnapshot } = useChannelStudio();
+  const activeSegment = SEGMENTS.find((segment) => segment.id === config.segmentId);
 
   return (
     <div className="h-full flex flex-col overflow-y-auto p-5" style={{ width: 288 }}>
@@ -47,6 +49,25 @@ export default function Inspector() {
           </button>
         ))}
       </div>
+
+      {/* Segment */}
+      <SectionLabel>Segment</SectionLabel>
+      <select
+        value={config.segmentId}
+        onChange={(event) => updateConfig({ segmentId: event.target.value })}
+        className="w-full rounded-xl bg-white/10 text-white text-[13px] font-semibold px-3 py-2.5 outline-none border border-white/10 focus:border-white/30"
+      >
+        {SEGMENTS.map((segment) => (
+          <option key={segment.id} value={segment.id} className="text-black">
+            {segment.label}
+          </option>
+        ))}
+      </select>
+      {activeSegment?.description ? (
+        <p className="text-[10px] text-white/35 mt-2 mb-6 leading-relaxed">{activeSegment.description}</p>
+      ) : (
+        <div className="mb-6" />
+      )}
 
       {/* Locale / country */}
       <SectionLabel>Locale</SectionLabel>

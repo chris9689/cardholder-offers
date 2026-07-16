@@ -10,7 +10,7 @@
  * that returns the same normalized ChannelContent — no UI changes required.
  */
 
-import type { ChannelContent, ChannelId, GenerationContext } from '../types';
+import type { ChannelContent, ChannelId, GenerationContext, SegmentDefinition } from '../types';
 import { generateContent } from './heuristics';
 
 export interface GenerateRequest {
@@ -18,6 +18,7 @@ export interface GenerateRequest {
   context: GenerationContext;
   variant: number;
   senderName: string;
+  segment: SegmentDefinition;
 }
 
 export interface ChannelContentProvider {
@@ -33,10 +34,10 @@ export interface ChannelContentProvider {
 export const MockContentProvider: ChannelContentProvider = {
   id: 'mock',
   label: 'Mock (Heuristics)',
-  async generate({ channel, context, variant, senderName }) {
+  async generate({ channel, context, variant, senderName, segment }) {
     // Simulated generation latency purely for the demo shimmer.
     await new Promise((resolve) => setTimeout(resolve, 520));
-    return generateContent(channel, context, variant, senderName);
+    return generateContent(channel, context, variant, senderName, segment);
   },
 };
 
