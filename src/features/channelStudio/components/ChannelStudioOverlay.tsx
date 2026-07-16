@@ -33,25 +33,21 @@ export default function ChannelStudioOverlay() {
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
           className="fixed inset-0 z-100 flex items-center justify-center"
-          style={{ background: 'rgba(6,6,10,0.6)', backdropFilter: 'blur(6px)' }}
+          style={{ background: 'rgba(6,6,10,0.6)' }}
           onClick={close}
           role="dialog"
           aria-modal="true"
-          aria-label="Channel Studio"
+          aria-label="Channel Preview"
         >
           <motion.div
-            initial={{ opacity: 0, scale: 0.96, y: 12 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.97, y: 8 }}
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.98 }}
             transition={{ type: 'spring', damping: 26, stiffness: 240 }}
             onClick={(event) => event.stopPropagation()}
-            className="relative flex flex-col overflow-hidden"
+            className="relative flex flex-col overflow-hidden w-full h-full"
             style={{
-              width: 'min(1360px, 96vw)',
-              height: 'min(860px, 94vh)',
-              borderRadius: 28,
               background: 'linear-gradient(160deg, #17151f 0%, #0d0c14 55%, #08070c 100%)',
-              boxShadow: '0 40px 120px -30px rgba(0,0,0,0.8), inset 0 0 0 1px rgba(255,255,255,0.06)',
             }}
           >
             {/* Toolbar */}
@@ -61,7 +57,7 @@ export default function ChannelStudioOverlay() {
                   <Layers size={17} className="text-white" />
                 </span>
                 <div>
-                  <div className="text-[14px] font-black uppercase tracking-widest text-white leading-none">Channel Studio</div>
+                  <div className="text-[14px] font-black uppercase tracking-widest text-white leading-none">Channel Preview</div>
                   {contextSnapshot && (
                     <div className="text-[11px] text-white/40 mt-1">
                       {contextSnapshot.pageLabel} • personalized preview
