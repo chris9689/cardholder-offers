@@ -15,6 +15,7 @@ import Savings from './pages/Savings';
 import SearchPage from './pages/Search';
 import CuratedResults from './pages/CuratedResults';
 import AgentDrawer from './components/AgentDrawer';
+import ChannelStudio from './features/channelStudio';
 import { CardProvider } from './contexts/CardContext';
 import { SessionProvider } from './contexts/SessionContext';
 import { setDyRecommendationContext } from './lib/dynamicYield';
@@ -48,6 +49,7 @@ function MainLayout({ children }: { children: React.ReactNode }) {
       </main>
       <Footer />
       <AgentDrawer />
+      <ChannelStudio />
     </div>
   );
 }
