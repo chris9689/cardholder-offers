@@ -188,10 +188,10 @@ export default function EmailPreview({ content, theme }: EmailPreviewProps) {
             </div>
             <div className="flex items-center gap-3 mt-3">
               <div
-                className="flex items-center justify-center shrink-0"
-                style={{ width: 40, height: 40, borderRadius: 999, background: '#000', color: '#fff', fontWeight: 700, fontSize: 16 }}
+                className="flex items-center justify-center shrink-0 overflow-hidden"
+                style={{ width: 40, height: 40, borderRadius: 999, background: '#fff', border: `1px solid ${border}` }}
               >
-                {content.senderInitial}
+                <img src={BRAND_LOGO_URL} alt="" className="w-full h-full object-contain" style={{ padding: 6 }} />
               </div>
               <div className="min-w-0">
                 <div style={{ fontSize: 15, fontWeight: 700, color: textPrimary }}>{content.senderName}</div>

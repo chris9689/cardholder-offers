@@ -38,14 +38,14 @@ export default function PushNotificationCard({ content, delay = 0 }: PushNotific
           width: 40,
           height: 40,
           borderRadius: 10,
-          background: 'linear-gradient(160deg, #1a1a1a, #000)',
+          background: content.appIconImage ? '#fff' : 'linear-gradient(160deg, #1a1a1a, #000)',
           color: '#fff',
           fontWeight: 800,
           fontSize: 16,
         }}
       >
         {content.appIconImage ? (
-          <img src={content.appIconImage} alt="" className="w-full h-full object-cover" />
+          <img src={content.appIconImage} alt="" className="w-full h-full object-contain" style={{ padding: 5 }} />
         ) : (
           content.appIconText
         )}

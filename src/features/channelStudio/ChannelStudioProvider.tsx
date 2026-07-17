@@ -42,6 +42,17 @@ interface ChannelResult {
 
 type DeviceMode = 'single' | 'compare';
 
+/**
+ * Representative persona per card tier. Switching the tier lever swaps the
+ * recipient so the personalization connection (tier → real cardholder) is
+ * visible in every channel. Backend-configurable in a real deployment.
+ */
+const TIER_PERSONAS: Record<string, { name: string; points: number }> = {
+  Standard: { name: 'Emma Carter', points: 42800 },
+  Premium: { name: 'Julian Anderson', points: 125400 },
+  Black: { name: 'Sophia Laurent', points: 486200 },
+};
+
 interface ChannelStudioContextValue {
   isOpen: boolean;
   open: () => void;
@@ -98,14 +109,21 @@ export function ChannelStudioProvider({ children }: { children: ReactNode }) {
   const generationToken = useRef(0);
 
   const buildContext = useCallback(
-    (base: GenerationContext): GenerationContext => ({
-      ...base,
-      user: {
-        ...base.user,
-        cardType: config.tier,
-        country: config.country,
-      },
-    }),
+    (base: GenerationContext): GenerationContext => {
+      const persona = TIER_PERSONAS[config.tier];
+      const name = persona?.name ?? base.user.name;
+      const firstName = name.split(' ')[0] || name;
+      return {
+        ...base,
+        user: {
+          ...base.user,
+          name,
+          firstName,
+          cardType: config.tier,
+          country: config.country,
+        },
+      };
+    },
     [config.tier, config.country],
   );
 
