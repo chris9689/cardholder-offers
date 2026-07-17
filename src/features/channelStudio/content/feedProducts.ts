@@ -73,12 +73,15 @@ function toStudioProduct(item: ProductFeedItem): StudioProduct {
 interface FeedQuery {
   country?: string;
   tier?: string;
+  /** Friendly category label (e.g. 'Travel') to prioritize, from a segment. */
+  category?: string;
 }
 
 /**
  * Returns real offers from the feed as StudioProducts. Filters by country and
  * tier when matches exist, otherwise relaxes the filter so a preview is always
- * available. Requires a usable image so the email/push always look polished.
+ * available. When a category is given (segment bias), matching offers are
+ * surfaced first. Requires a usable image so the email/push always look polished.
  */
 export function getFeedStudioProducts(query: FeedQuery = {}): StudioProduct[] {
   const all = getAllProducts().filter((item) => item.in_stock && item.image_url && item.brand && item.name);
@@ -100,6 +103,15 @@ export function getFeedStudioProducts(query: FeedQuery = {}): StudioProduct[] {
     if (byTier.length > 0) {
       pool = byTier;
     }
+  }
+
+  // Segment category bias: surface matching offers first (stable partition),
+  // so e.g. Frequent Travelers see travel offers from the selected country up top.
+  if (query.category) {
+    const wanted = query.category.toLowerCase();
+    const matching = pool.filter((item) => categoryLabel(item.categories).toLowerCase() === wanted);
+    const rest = pool.filter((item) => categoryLabel(item.categories).toLowerCase() !== wanted);
+    pool = [...matching, ...rest];
   }
 
   // De-duplicate by brand + name so the preview shows variety, not repeats.

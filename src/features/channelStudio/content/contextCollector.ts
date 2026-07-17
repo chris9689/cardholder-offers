@@ -20,6 +20,8 @@ interface CollectInput {
   cardType: CardType;
   points: number;
   country: string;
+  /** Optional segment category bias (friendly label, e.g. 'Travel'). */
+  categoryBias?: string;
 }
 
 const ALL_OFFERS: Offer[] = [...OFFERS, ...NEAR_ME_OFFERS];
@@ -112,13 +114,18 @@ function computeDominantCategory(products: StudioProduct[]): string {
 export function collectContext(input: CollectInput): GenerationContext {
   const { pageType, pageLabel, products: rawProducts } = resolvePage(input.pathname);
 
-  // Prefer real offers from the products.csv feed (filtered by country/tier),
-  // falling back to the page's static offers if the feed yields nothing.
-  const feedProducts = getFeedStudioProducts({ country: input.country, tier: input.cardType });
+  // Prefer real offers from the products.csv feed (filtered by country/tier,
+  // and prioritized by the segment's category bias), falling back to the
+  // page's static offers if the feed yields nothing.
+  const feedProducts = getFeedStudioProducts({
+    country: input.country,
+    tier: input.cardType,
+    category: input.categoryBias,
+  });
   const staticProducts = (rawProducts.length > 0 ? rawProducts : OFFERS).map(toStudioProduct);
   const pool = feedProducts.length > 0 ? feedProducts : staticProducts;
 
-  const products = pool.slice(0, 4);
+  const products = pool.slice(0, 6);
   const safeProducts = products.length > 0 ? products : [toStudioProduct(OFFERS[0])];
 
   const firstName = input.userName.split(' ')[0] || input.userName;

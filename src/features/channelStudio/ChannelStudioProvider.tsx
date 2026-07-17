@@ -171,35 +171,40 @@ export function ChannelStudioProvider({ children }: { children: ReactNode }) {
   }, [isOpen, contextSnapshot, visibleChannels, variantIndex, config.tier, config.country, config.senderName, config.segmentId]);
 
   const open = useCallback(() => {
+    const persona = TIER_PERSONAS[config.tier];
     const snapshot = collectContext({
       pathname,
-      userName: displayName,
+      userName: persona?.name ?? displayName,
       cardType: config.tier,
-      points: userVariables?.points ?? points,
+      points: persona?.points ?? userVariables?.points ?? points,
       country: config.country,
+      categoryBias: getSegment(config.segmentId).categoryBias,
     });
     generationToken.current += 1;
     setResults(emptyResults);
     setContextSnapshot(snapshot);
     setIsOpen(true);
-  }, [pathname, displayName, config.tier, config.country, points, userVariables]);
+  }, [pathname, displayName, config.tier, config.country, config.segmentId, points, userVariables]);
 
-  // Re-collect the offer pool whenever the tier or country affinity changes
-  // while open, so the previewed offers (not just the copy) reflect the lever.
+  // Re-collect the offer pool whenever the tier, country affinity, or segment
+  // changes while open, so the previewed offers AND the target persona (not just
+  // the copy) reflect the levers.
   useEffect(() => {
     if (!isOpen) {
       return;
     }
+    const persona = TIER_PERSONAS[config.tier];
     const snapshot = collectContext({
       pathname,
-      userName: displayName,
+      userName: persona?.name ?? displayName,
       cardType: config.tier,
-      points: userVariables?.points ?? points,
+      points: persona?.points ?? userVariables?.points ?? points,
       country: config.country,
+      categoryBias: getSegment(config.segmentId).categoryBias,
     });
     setContextSnapshot(snapshot);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [config.tier, config.country, pathname]);
+  }, [config.tier, config.country, config.segmentId, pathname]);
 
   const close = useCallback(() => {
     generationToken.current += 1;
