@@ -8,7 +8,7 @@
  */
 
 import React from 'react';
-import { RefreshCw, Sun, Moon } from 'lucide-react';
+import { Sun, Moon } from 'lucide-react';
 import { useChannelStudio } from '../ChannelStudioProvider';
 import { SEGMENTS } from '../segments/segmentRegistry';
 import { getFeedCountries } from '../../../lib/productFeed';
@@ -26,7 +26,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 }
 
 export default function Inspector() {
-  const { config, updateConfig, regenerate, contextSnapshot } = useChannelStudio();
+  const { config, updateConfig, contextSnapshot } = useChannelStudio();
   const activeSegment = SEGMENTS.find((segment) => segment.id === config.segmentId);
 
   return (
@@ -73,8 +73,8 @@ export default function Inspector() {
         <div className="mb-6" />
       )}
 
-      {/* Locale / country */}
-      <SectionLabel>Locale</SectionLabel>
+      {/* Country affinity */}
+      <SectionLabel>Country Affinity</SectionLabel>
       <select
         value={config.country}
         onChange={(event) => updateConfig({ country: event.target.value })}
@@ -115,16 +115,9 @@ export default function Inspector() {
 
       <div className="flex-1" />
 
-      {/* Variants / regenerate */}
-      <button
-        onClick={regenerate}
-        className="w-full flex items-center justify-center gap-2 rounded-2xl bg-white text-black py-3.5 text-[12px] font-black uppercase tracking-widest hover:bg-white/90 active:scale-[0.98] transition-all"
-      >
-        <RefreshCw size={15} strokeWidth={2.5} />
-        New Variant
-      </button>
-      <p className="text-[10px] text-white/35 text-center mt-2.5 leading-relaxed">
-        Generates a fresh variant using the current personalization inputs.
+      <p className="text-[10px] text-white/35 text-center leading-relaxed">
+        Every change re-renders the preview instantly using the current
+        personalization inputs.
       </p>
     </div>
   );

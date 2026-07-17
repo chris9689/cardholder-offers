@@ -184,6 +184,23 @@ export function ChannelStudioProvider({ children }: { children: ReactNode }) {
     setIsOpen(true);
   }, [pathname, displayName, config.tier, config.country, points, userVariables]);
 
+  // Re-collect the offer pool whenever the tier or country affinity changes
+  // while open, so the previewed offers (not just the copy) reflect the lever.
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+    const snapshot = collectContext({
+      pathname,
+      userName: displayName,
+      cardType: config.tier,
+      points: userVariables?.points ?? points,
+      country: config.country,
+    });
+    setContextSnapshot(snapshot);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [config.tier, config.country, pathname]);
+
   const close = useCallback(() => {
     generationToken.current += 1;
     setIsOpen(false);
