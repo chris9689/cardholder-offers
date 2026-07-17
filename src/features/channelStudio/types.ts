@@ -71,6 +71,8 @@ export interface EmailProduct {
   name: string;
   image: string;
   reward: string;
+  country?: string;
+  logoText?: string;
 }
 
 /** Generated content for a marketing email (iPad Mail app). */

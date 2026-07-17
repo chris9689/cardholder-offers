@@ -20,6 +20,7 @@ import type {
   SegmentTemplateVars,
   StudioProduct,
 } from '../types';
+import { BRAND_LOGO_URL } from '../brandAssets';
 
 /** Small deterministic PRNG so "Variants" change copy predictably, not randomly. */
 function seeded(seedSource: string): () => number {
@@ -152,6 +153,7 @@ export function generatePush(ctx: GenerationContext, variant: number, segment: S
   return {
     appName: ctx.brandName.toUpperCase(),
     appIconText: (ctx.brandName[0] ?? 'M').toUpperCase(),
+    appIconImage: BRAND_LOGO_URL,
     title: resolveText(segment.push?.title, vars, pick(titles, rng)),
     body: resolveText(segment.push?.body, vars, pick(bodies, rng)),
     timeLabel: 'now',
@@ -163,12 +165,14 @@ export function generatePush(ctx: GenerationContext, variant: number, segment: S
 // Email
 // ---------------------------------------------------------------------------
 
-function toEmailProduct(product: StudioProduct): EmailProduct {
+function toEmailProduct(product: StudioProduct, country: string): EmailProduct {
   return {
     brand: product.brand,
     name: product.name,
     image: product.image,
     reward: rewardPhrase(product),
+    country,
+    logoText: product.logoText,
   };
 }
 
@@ -229,7 +233,7 @@ export function generateEmail(
     eyebrow: resolveText(segment.email?.eyebrow, vars, eyebrows[tone]),
     headline: resolveText(segment.email?.headline, vars, pick(headlines, rng)),
     bodyParagraphs: resolveList(segment.email?.body, vars, defaultBody),
-    products: ctx.products.slice(0, 3).map(toEmailProduct),
+    products: ctx.products.slice(0, 6).map((p) => toEmailProduct(p, ctx.user.country)),
     ctaLabel: resolveText(segment.email?.ctaLabel, vars, defaultCta),
     recommendationReason: resolveText(segment.email?.recommendationReason, vars, `Because you like ${ctx.dominantCategory}`),
     footerNote: `Sent to ${ctx.user.firstName} • ${ctx.user.cardType} Card • ${ctx.user.country}`,
