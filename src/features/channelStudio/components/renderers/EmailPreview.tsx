@@ -70,10 +70,14 @@ function OfferTile({ product, isDark, border, surface, textPrimary, textMuted }:
       <div style={{ padding: '10px 11px 12px' }}>
         <div className="flex items-start gap-2">
           <div
-            className="flex items-center justify-center shrink-0"
-            style={{ width: 26, height: 26, borderRadius: 999, background: 'rgba(119,90,25,0.12)', color: '#775a19', fontSize: 10, fontWeight: 800 }}
+            className="flex items-center justify-center shrink-0 overflow-hidden"
+            style={{ width: 26, height: 26, borderRadius: 999, background: '#fff', border: `1px solid ${border}`, color: '#775a19', fontSize: 10, fontWeight: 800 }}
           >
-            {product.logoText ?? product.brand.slice(0, 2).toUpperCase()}
+            {product.logoUrl ? (
+              <img src={product.logoUrl} alt="" className="w-full h-full object-contain" style={{ padding: 3 }} />
+            ) : (
+              product.logoText ?? product.brand.slice(0, 2).toUpperCase()
+            )}
           </div>
           <div className="line-clamp-2" style={{ fontSize: 12.5, fontWeight: 600, color: textPrimary, lineHeight: 1.3 }}>
             {product.name}
@@ -275,20 +279,24 @@ export default function EmailPreview({ content, theme }: EmailPreviewProps) {
                   {content.products.map((product) => (
                     <div
                       key={`chip-${product.brand}`}
-                      className="flex items-center justify-center"
+                      className="flex items-center justify-center overflow-hidden"
                       style={{
                         minWidth: 54,
                         height: 34,
                         padding: '0 10px',
                         borderRadius: 8,
-                        background: isDark ? 'rgba(255,255,255,0.06)' : '#f4f5f7',
+                        background: isDark ? 'rgba(255,255,255,0.9)' : '#fff',
                         border: `1px solid ${border}`,
                         fontSize: 11,
                         fontWeight: 800,
                         color: '#775a19',
                       }}
                     >
-                      {product.logoText ?? product.brand.slice(0, 2).toUpperCase()}
+                      {product.logoUrl ? (
+                        <img src={product.logoUrl} alt="" style={{ maxWidth: 60, maxHeight: 22, objectFit: 'contain' }} />
+                      ) : (
+                        product.logoText ?? product.brand.slice(0, 2).toUpperCase()
+                      )}
                     </div>
                   ))}
                 </div>
@@ -318,7 +326,7 @@ export default function EmailPreview({ content, theme }: EmailPreviewProps) {
 
               {/* Footer banner */}
               <div className="relative" style={{ height: 150, borderRadius: 18, overflow: 'hidden' }}>
-                <img src={content.heroImage} alt="" className="w-full h-full object-cover" />
+                <img src={content.footerImage} alt="" className="w-full h-full object-cover" />
                 <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.35), rgba(0,0,0,0.7))' }} />
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center" style={{ padding: '0 24px' }}>
                   <div style={{ fontSize: 17, fontWeight: 800, color: '#fff', letterSpacing: -0.2, lineHeight: 1.25, maxWidth: 320 }}>

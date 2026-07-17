@@ -63,6 +63,7 @@ function toStudioProduct(item: ProductFeedItem): StudioProduct {
     category: categoryLabel(item.categories),
     image: item.image_url,
     logoText: (item.brand || '?').slice(0, 2).toUpperCase(),
+    logoUrl: item.logo_url || undefined,
     rewardValue,
     rewardType,
     expiryLabel: formatExpiry(item.enddate),

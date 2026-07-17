@@ -29,6 +29,7 @@ export interface StudioProduct {
   category: string;
   image: string;
   logoText: string;
+  logoUrl?: string;
   rewardValue: string;
   rewardType: string;
   expiryLabel?: string;
@@ -73,6 +74,7 @@ export interface EmailProduct {
   reward: string;
   country?: string;
   logoText?: string;
+  logoUrl?: string;
 }
 
 /** Generated content for a marketing email (iPad Mail app). */
@@ -91,6 +93,7 @@ export interface EmailContent {
   ctaLabel: string;
   recommendationReason: string;
   footerNote: string;
+  footerImage: string;
 }
 
 export interface ChannelContent {
@@ -153,6 +156,8 @@ export interface SegmentEmailTemplate {
   body?: SegmentTextList;
   ctaLabel?: SegmentText;
   recommendationReason?: SegmentText;
+  /** Absolute image URL for the email footer banner (per-segment). */
+  footerImage?: string;
 }
 
 /**

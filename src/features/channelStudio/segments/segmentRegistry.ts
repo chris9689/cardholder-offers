@@ -19,7 +19,10 @@
  *                 category are surfaced first, and copy references it.
  *   push          Override the notification title / body.
  *   email         Override subject, preheader, eyebrow, headline, body
- *                 paragraphs, CTA label, and recommendation reason.
+ *                 paragraphs, CTA label, recommendation reason, and the
+ *                 footer banner image (email.footerImage — an absolute image
+ *                 URL shown at the bottom of the email; omit to use the
+ *                 default footer image).
  *
  * Every override is either a plain string OR a function of these tokens
  * (see SegmentTemplateVars): firstName, brand, reward, category, tier,
@@ -89,6 +92,8 @@ export const SEGMENTS: SegmentDefinition[] = [
       ],
       ctaLabel: 'Explore travel rewards',
       recommendationReason: () => `Because you love to travel`,
+      // Example: give this segment its own footer banner image.
+      footerImage: 'https://cdn.dynamicyield.com/api/8794982/images/45c2ce8a5681.webp',
     },
   },
   {

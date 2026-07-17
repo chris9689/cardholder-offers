@@ -48,8 +48,8 @@ type DeviceMode = 'single' | 'compare';
  * visible in every channel. Backend-configurable in a real deployment.
  */
 const TIER_PERSONAS: Record<string, { name: string; points: number }> = {
-  Standard: { name: 'Emma Carter', points: 42800 },
-  Premium: { name: 'Julian Anderson', points: 125400 },
+  Standard: { name: 'Daniel Carter', points: 42800 },
+  Premium: { name: 'Michael Sterling', points: 125400 },
   Black: { name: 'Sophia Laurent', points: 486200 },
 };
 

@@ -20,7 +20,7 @@ import type {
   SegmentTemplateVars,
   StudioProduct,
 } from '../types';
-import { BRAND_LOGO_URL } from '../brandAssets';
+import { BRAND_LOGO_URL, DEFAULT_EMAIL_FOOTER_IMAGE_URL } from '../brandAssets';
 
 /** Small deterministic PRNG so "Variants" change copy predictably, not randomly. */
 function seeded(seedSource: string): () => number {
@@ -173,6 +173,7 @@ function toEmailProduct(product: StudioProduct, country: string): EmailProduct {
     reward: rewardPhrase(product),
     country,
     logoText: product.logoText,
+    logoUrl: product.logoUrl,
   };
 }
 
@@ -237,6 +238,7 @@ export function generateEmail(
     ctaLabel: resolveText(segment.email?.ctaLabel, vars, defaultCta),
     recommendationReason: resolveText(segment.email?.recommendationReason, vars, `Because you like ${ctx.dominantCategory}`),
     footerNote: `Sent to ${ctx.user.firstName} • ${ctx.user.cardType} Card • ${ctx.user.country}`,
+    footerImage: segment.email?.footerImage ?? DEFAULT_EMAIL_FOOTER_IMAGE_URL,
   };
 }
 
