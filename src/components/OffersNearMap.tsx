@@ -3,9 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Navigation } from 'lucide-react';
+import { ArrowRight, ChevronLeft, MapPin, Navigation, Tag } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import type { ProductFeedItem } from '../lib/productFeed';
 
 interface CityGeo {
@@ -38,6 +39,9 @@ const CITY_GEO: Record<string, CityGeo> = {
   AUH: { name: 'Abu Dhabi', lat: 24.45, lng: 54.38 },
 };
 
+// Cap the number of offer pins rendered in the city view to keep it readable.
+const MAX_CITY_PINS = 16;
+
 function hashSeed(value: string): number {
   let hash = 0;
   for (let i = 0; i < value.length; i += 1) {
@@ -56,20 +60,33 @@ interface MapCity {
   name: string;
   x: number;
   y: number;
-  count: number;
+  offers: ProductFeedItem[];
+}
+
+interface OfferPin {
   sku: string;
   brand: string;
+  name: string;
+  x: number;
+  y: number;
 }
 
 interface OffersNearMapProps {
   country: string;
   offers: ProductFeedItem[];
-  // Deterministic per-user seed (DY uid) so the highlighted city and the offer
-  // each pin links to stay stable for a user but vary between users.
+  // Deterministic per-user seed (DY uid) so the highlighted city and the pin
+  // layout stay stable for a user but vary between users.
   seed: string;
 }
 
 export default function OffersNearMap({ country, offers, seed }: OffersNearMapProps) {
+  const [selectedCode, setSelectedCode] = useState<string | null>(null);
+
+  // Reset the drill-down whenever the country (tier/selection) changes.
+  useEffect(() => {
+    setSelectedCode(null);
+  }, [country]);
+
   const cities = useMemo<MapCity[]>(() => {
     const byCity = new Map<string, ProductFeedItem[]>();
     for (const offer of offers) {
@@ -112,7 +129,6 @@ export default function OffersNearMap({ country, offers, seed }: OffersNearMapPr
     return codes
       .map((code) => {
         const list = byCity.get(code) as ProductFeedItem[];
-        const rep = list[hashSeed(seed + code) % list.length];
         const geo = CITY_GEO[code];
         const point = project(geo.lat, geo.lng);
         return {
@@ -120,13 +136,46 @@ export default function OffersNearMap({ country, offers, seed }: OffersNearMapPr
           name: geo.name,
           x: point.x,
           y: point.y,
-          count: list.length,
-          sku: rep.sku,
-          brand: rep.brand,
+          offers: list,
         };
       })
-      .sort((a, b) => b.count - a.count);
-  }, [offers, seed]);
+      .sort((a, b) => b.offers.length - a.offers.length);
+  }, [offers]);
+
+  const selectedCity = useMemo(
+    () => cities.find((city) => city.code === selectedCode) ?? null,
+    [cities, selectedCode],
+  );
+
+  // Scatter a city's offers around its centre using a golden-angle spiral so
+  // they read as distinct pins on the map rather than overlapping.
+  const offerPins = useMemo<OfferPin[]>(() => {
+    if (!selectedCity) {
+      return [];
+    }
+
+    const ordered = [...selectedCity.offers]
+      .sort((a, b) => hashSeed(seed + a.sku) - hashSeed(seed + b.sku))
+      .slice(0, MAX_CITY_PINS);
+
+    const golden = 137.508 * (Math.PI / 180);
+    const angleOffset = (hashSeed(seed + selectedCity.code) % 360) * (Math.PI / 180);
+    const maxR = 32;
+    const cx = 50;
+    const cy = 55;
+
+    return ordered.map((offer, index) => {
+      const r = ordered.length === 1 ? 0 : maxR * Math.sqrt((index + 0.6) / ordered.length);
+      const angle = angleOffset + index * golden;
+      return {
+        sku: offer.sku,
+        brand: offer.brand,
+        name: offer.name,
+        x: cx + r * Math.cos(angle),
+        y: cy + r * Math.sin(angle) * 1.02,
+      };
+    });
+  }, [selectedCity, seed]);
 
   if (cities.length === 0) {
     return null;
@@ -134,7 +183,8 @@ export default function OffersNearMap({ country, offers, seed }: OffersNearMapPr
 
   const highlightIndex = hashSeed(seed || 'guest-seed') % cities.length;
   const hub = cities[highlightIndex];
-  const totalOffers = cities.reduce((sum, city) => sum + city.count, 0);
+  const totalOffers = cities.reduce((sum, city) => sum + city.offers.length, 0);
+  const cityCenter = { x: 50, y: 55 };
 
   return (
     <div className="relative rounded-[48px] overflow-hidden shadow-xl border-4 border-white min-h-[420px] h-full bg-primary">
@@ -153,70 +203,164 @@ export default function OffersNearMap({ country, offers, seed }: OffersNearMapPr
           </pattern>
         </defs>
         <rect width="100" height="100" fill="url(#map-grid)" />
-        {cities.map((city) =>
-          city.code === hub.code ? null : (
-            <path
-              key={`arc-${city.code}`}
-              d={`M ${hub.x} ${hub.y} Q ${(hub.x + city.x) / 2} ${Math.min(hub.y, city.y) - 12} ${city.x} ${city.y}`}
-              fill="none"
-              stroke="white"
-              strokeOpacity="0.35"
-              strokeWidth="1"
-              strokeDasharray="2 2"
-              vectorEffect="non-scaling-stroke"
-            />
-          ),
-        )}
+        {selectedCity
+          ? offerPins.map((pin) => (
+              <line
+                key={`spoke-${pin.sku}`}
+                x1={cityCenter.x}
+                y1={cityCenter.y}
+                x2={pin.x}
+                y2={pin.y}
+                stroke="white"
+                strokeOpacity="0.25"
+                strokeWidth="1"
+                strokeDasharray="2 2"
+                vectorEffect="non-scaling-stroke"
+              />
+            ))
+          : cities.map((city) =>
+              city.code === hub.code ? null : (
+                <path
+                  key={`arc-${city.code}`}
+                  d={`M ${hub.x} ${hub.y} Q ${(hub.x + city.x) / 2} ${Math.min(hub.y, city.y) - 12} ${city.x} ${city.y}`}
+                  fill="none"
+                  stroke="white"
+                  strokeOpacity="0.35"
+                  strokeWidth="1"
+                  strokeDasharray="2 2"
+                  vectorEffect="non-scaling-stroke"
+                />
+              ),
+            )}
       </svg>
 
       {/* Header */}
       <div className="absolute top-0 left-0 right-0 p-7 md:p-8 z-20">
-        <span className="inline-flex items-center gap-1.5 font-sans text-[10px] font-black uppercase tracking-[0.3em] text-white/70">
-          <Navigation size={12} /> Offers Near You
-        </span>
-        <h3 className="text-2xl md:text-3xl font-black uppercase tracking-tight text-white mt-2">{country}</h3>
-        <p className="font-sans text-[11px] font-bold uppercase tracking-widest text-white/60 mt-1">
-          {totalOffers} offers · {cities.length} {cities.length === 1 ? 'city' : 'cities'}
-        </p>
+        {selectedCity ? (
+          <>
+            <button
+              type="button"
+              onClick={() => setSelectedCode(null)}
+              className="inline-flex items-center gap-1.5 font-sans text-[10px] font-black uppercase tracking-[0.3em] text-white/80 hover:text-white transition-colors"
+            >
+              <ChevronLeft size={14} /> {country}
+            </button>
+            <h3 className="text-2xl md:text-3xl font-black uppercase tracking-tight text-white mt-2">{selectedCity.name}</h3>
+            <p className="font-sans text-[11px] font-bold uppercase tracking-widest text-white/60 mt-1">
+              {selectedCity.offers.length} {selectedCity.offers.length === 1 ? 'offer' : 'offers'}
+              {selectedCity.offers.length > MAX_CITY_PINS ? ` · showing ${MAX_CITY_PINS}` : ''}
+            </p>
+          </>
+        ) : (
+          <>
+            <span className="inline-flex items-center gap-1.5 font-sans text-[10px] font-black uppercase tracking-[0.3em] text-white/70">
+              <Navigation size={12} /> Offers Near You
+            </span>
+            <h3 className="text-2xl md:text-3xl font-black uppercase tracking-tight text-white mt-2">{country}</h3>
+            <p className="font-sans text-[11px] font-bold uppercase tracking-widest text-white/60 mt-1">
+              {totalOffers} offers · {cities.length} {cities.length === 1 ? 'city' : 'cities'}
+            </p>
+          </>
+        )}
       </div>
 
-      {/* City pins */}
-      {cities.map((city) => {
-        const isHub = city.code === hub.code;
-        return (
-          <Link
-            key={city.code}
-            to={`/offers/${encodeURIComponent(city.sku)}`}
-            className="group absolute z-30 -translate-x-1/2 -translate-y-full"
-            style={{ left: `${city.x}%`, top: `${city.y}%` }}
-            aria-label={`${city.name}: ${city.count} offers`}
+      <AnimatePresence mode="wait">
+        {selectedCity ? (
+          <motion.div
+            key={`city-${selectedCity.code}`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="absolute inset-0"
           >
-            <div className="flex flex-col items-center">
-              <span className="whitespace-nowrap mb-1.5 px-2.5 py-1 rounded-full bg-white/95 text-primary font-sans text-[9px] font-black uppercase tracking-wider shadow-lg opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity">
-                {city.name} · {city.count}
-              </span>
-              <span className="relative flex items-center justify-center">
-                {isHub && (
-                  <span className="absolute inline-flex h-8 w-8 rounded-full bg-secondary/60 animate-ping" />
-                )}
-                <span
-                  className={`relative flex items-center justify-center rounded-full border-2 border-white shadow-lg transition-transform group-hover:scale-110 ${
-                    isHub ? 'bg-secondary w-9 h-9' : 'bg-white/90 w-7 h-7'
-                  }`}
+            {/* City centre marker */}
+            <span
+              className="absolute z-20 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center"
+              style={{ left: `${cityCenter.x}%`, top: `${cityCenter.y}%` }}
+            >
+              <span className="w-3 h-3 rounded-full bg-white/40 ring-4 ring-white/10" />
+            </span>
+
+            {/* Offer pins */}
+            {offerPins.map((pin) => (
+              <Link
+                key={pin.sku}
+                to={`/offers/${encodeURIComponent(pin.sku)}`}
+                className="group absolute z-30 -translate-x-1/2 -translate-y-full"
+                style={{ left: `${pin.x}%`, top: `${pin.y}%` }}
+                aria-label={`${pin.brand}: ${pin.name}`}
+              >
+                <div className="flex flex-col items-center">
+                  <span className="whitespace-nowrap mb-1.5 px-2.5 py-1 rounded-full bg-white/95 text-primary font-sans text-[9px] font-black uppercase tracking-wider shadow-lg opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity">
+                    {pin.brand}
+                  </span>
+                  <span className="relative flex items-center justify-center w-7 h-7 rounded-full border-2 border-white bg-secondary shadow-lg transition-transform group-hover:scale-110">
+                    <Tag size={12} className="text-white" />
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </motion.div>
+        ) : (
+          <motion.div
+            key="country"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="absolute inset-0"
+          >
+            {/* City pins */}
+            {cities.map((city) => {
+              const isHub = city.code === hub.code;
+              return (
+                <button
+                  key={city.code}
+                  type="button"
+                  onClick={() => setSelectedCode(city.code)}
+                  className="group absolute z-30 -translate-x-1/2 -translate-y-full"
+                  style={{ left: `${city.x}%`, top: `${city.y}%` }}
+                  aria-label={`${city.name}: ${city.offers.length} offers`}
                 >
-                  <MapPin size={isHub ? 16 : 13} className={isHub ? 'text-white' : 'text-primary'} />
-                </span>
-              </span>
-            </div>
-          </Link>
-        );
-      })}
+                  <div className="flex flex-col items-center">
+                    <span className="whitespace-nowrap mb-1.5 px-2.5 py-1 rounded-full bg-white/95 text-primary font-sans text-[9px] font-black uppercase tracking-wider shadow-lg opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity">
+                      {city.name} · {city.offers.length}
+                    </span>
+                    <span className="relative flex items-center justify-center">
+                      {isHub && (
+                        <span className="absolute inline-flex h-8 w-8 rounded-full bg-secondary/60 animate-ping" />
+                      )}
+                      <span
+                        className={`relative flex items-center justify-center rounded-full border-2 border-white shadow-lg transition-transform group-hover:scale-110 ${
+                          isHub ? 'bg-secondary w-9 h-9' : 'bg-white/90 w-7 h-7'
+                        }`}
+                      >
+                        <MapPin size={isHub ? 16 : 13} className={isHub ? 'text-white' : 'text-primary'} />
+                      </span>
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Footer hint */}
       <div className="absolute bottom-0 left-0 right-0 p-6 md:p-7 z-20 bg-linear-to-t from-black/60 to-transparent">
-        <p className="font-sans text-[10px] font-bold uppercase tracking-widest text-white/70">
-          Tap a pin to open a nearby offer
-        </p>
+        {selectedCity ? (
+          <Link
+            to="/offers"
+            className="inline-flex items-center gap-2 font-sans text-[10px] font-black uppercase tracking-widest text-white/80 hover:text-white transition-colors"
+          >
+            Browse all {selectedCity.name} offers <ArrowRight size={12} />
+          </Link>
+        ) : (
+          <p className="font-sans text-[10px] font-bold uppercase tracking-widest text-white/70">
+            Tap a city to explore its offers
+          </p>
+        )}
       </div>
     </div>
   );
