@@ -42,6 +42,10 @@ const CITY_GEO: Record<string, CityGeo> = {
 // Cap the number of offer pins rendered in the city view to keep it readable.
 const MAX_CITY_PINS = 16;
 
+// Pins and arcs are projected within this inset region (percentages) so they
+// never sit under the header (top) or footer (bottom) text overlays.
+const SAFE_ZONE = { top: 40, bottom: 82, left: 16, right: 84 };
+
 function hashSeed(value: string): number {
   let hash = 0;
   for (let i = 0; i < value.length; i += 1) {
@@ -116,13 +120,12 @@ export default function OffersNearMap({ country, offers, seed }: OffersNearMapPr
       maxLng = Math.max(maxLng, geo.lng);
     }
 
-    const pad = 20;
     const project = (lat: number, lng: number) => {
       const nx = maxLng === minLng ? 0.5 : (lng - minLng) / (maxLng - minLng);
       const ny = maxLat === minLat ? 0.5 : (maxLat - lat) / (maxLat - minLat);
       return {
-        x: pad + nx * (100 - 2 * pad),
-        y: pad + ny * (100 - 2 * pad),
+        x: SAFE_ZONE.left + nx * (SAFE_ZONE.right - SAFE_ZONE.left),
+        y: SAFE_ZONE.top + ny * (SAFE_ZONE.bottom - SAFE_ZONE.top),
       };
     };
 
@@ -160,19 +163,20 @@ export default function OffersNearMap({ country, offers, seed }: OffersNearMapPr
 
     const golden = 137.508 * (Math.PI / 180);
     const angleOffset = (hashSeed(seed + selectedCity.code) % 360) * (Math.PI / 180);
-    const maxR = 32;
-    const cx = 50;
-    const cy = 55;
+    const cx = (SAFE_ZONE.left + SAFE_ZONE.right) / 2;
+    const cy = (SAFE_ZONE.top + SAFE_ZONE.bottom) / 2;
+    const rx = (SAFE_ZONE.right - SAFE_ZONE.left) / 2;
+    const ry = (SAFE_ZONE.bottom - SAFE_ZONE.top) / 2;
 
     return ordered.map((offer, index) => {
-      const r = ordered.length === 1 ? 0 : maxR * Math.sqrt((index + 0.6) / ordered.length);
+      const frac = ordered.length === 1 ? 0 : Math.sqrt((index + 0.6) / ordered.length);
       const angle = angleOffset + index * golden;
       return {
         sku: offer.sku,
         brand: offer.brand,
         name: offer.name,
-        x: cx + r * Math.cos(angle),
-        y: cy + r * Math.sin(angle) * 1.02,
+        x: cx + rx * frac * Math.cos(angle),
+        y: cy + ry * frac * Math.sin(angle),
       };
     });
   }, [selectedCity, seed]);
@@ -184,7 +188,10 @@ export default function OffersNearMap({ country, offers, seed }: OffersNearMapPr
   const highlightIndex = hashSeed(seed || 'guest-seed') % cities.length;
   const hub = cities[highlightIndex];
   const totalOffers = cities.reduce((sum, city) => sum + city.offers.length, 0);
-  const cityCenter = { x: 50, y: 55 };
+  const cityCenter = {
+    x: (SAFE_ZONE.left + SAFE_ZONE.right) / 2,
+    y: (SAFE_ZONE.top + SAFE_ZONE.bottom) / 2,
+  };
 
   return (
     <div className="relative rounded-[48px] overflow-hidden shadow-xl border-4 border-white min-h-[420px] h-full bg-primary">
