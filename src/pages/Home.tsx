@@ -12,6 +12,7 @@ import OfferCard from '../components/OfferCard';
 import DyOfferCard from '../components/DyOfferCard';
 import CategoryCard from '../components/CategoryCard';
 import CountrySelector from '../components/CountrySelector';
+import OffersNearMap from '../components/OffersNearMap';
 import { SkeletonOfferCard, SkeletonCategoryCard, SkeletonFeaturedOffer } from '../components/SkeletonCard';
 import { OFFERS, CATEGORIES, CuratedCategory, rankCuratedCategories } from '../data/offers';
 import { useCard } from '../contexts/CardContext';
@@ -229,14 +230,14 @@ export default function Home() {
   const isStandard = displayCardType === 'Standard';
 
   const availableCountries = isStandard
-    ? ['UNITEDSTATES']
+    ? ['United States']
     : Array.from(new Set(tierEligibleOffers.map((offer) => offer.offer_country).filter(Boolean)));
   // When a specific country is selected, the featured offers element is filtered
   // to that country. "Everywhere" falls back to the top affinity country (today's behavior).
   const hasCountrySelection =
     selectedCountry !== 'Everywhere' && availableCountries.includes(selectedCountry);
   const featuredCountry = isStandard
-    ? 'UNITEDSTATES'
+    ? 'United States'
     : hasCountrySelection
     ? selectedCountry
     : resolveFeaturedCountry(
@@ -251,6 +252,10 @@ export default function Home() {
     .sort((a, b) => a.brand.localeCompare(b.brand))
     .slice(0, 3);
   const featuredCountryImage = getCountryHeroImage(featuredCountry || '', featuredCountryOffers);
+  // Standard tier is domestic (US), and any explicit country selection both call
+  // for the interactive "Offers Near You" map instead of the affinity image panel.
+  const showNearMap = Boolean(featuredCountry) && (isStandard || hasCountrySelection);
+  const nearMapSeed = affinityProfile?.uid ?? displayName;
 
   return (
     <div className="flex flex-col w-full pt-16">
@@ -387,7 +392,7 @@ export default function Home() {
           <div className="lg:col-span-7">
             <span className="font-sans text-xs font-bold text-secondary uppercase tracking-[0.3em] mb-3 block">Featured Offers</span>
             <h2 className="text-3xl md:text-4xl text-primary mb-3">
-              {isStandard ? 'Explore Offers Nearby' : `Explore Offers In ${featuredCountry}`}
+              {showNearMap ? 'Offers Near You' : `Explore Offers In ${featuredCountry}`}
             </h2>
             <p className="font-sans text-on-surface-variant mb-8 text-base leading-relaxed font-light">
               
@@ -449,24 +454,30 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="lg:col-span-5 relative rounded-[48px] overflow-hidden shadow-xl border-4 border-white min-h-[420px]">
-            <img
-              className="w-full h-full object-cover"
-              alt={featuredCountry ? `${featuredCountry} featured destination` : 'Featured destination'}
-              src={featuredCountryImage}
-            />
-            <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/20 to-transparent" />
-            <div className="absolute bottom-0 left-0 right-0 p-8 md:p-10 text-white">
-              <h3 className="text-2xl md:text-4xl font-black uppercase tracking-tight mb-3">{featuredCountry}</h3>
-              
-              <Link
-                to="/offers"
-                className="inline-flex items-center gap-2 bg-white text-primary hover:bg-secondary hover:text-white px-5 py-3 rounded-xl font-sans text-[10px] font-black uppercase tracking-widest transition-all"
-              >
-                Browse All Offers <ArrowRight size={12} />
-              </Link>
+          {showNearMap ? (
+            <div className="lg:col-span-5">
+              <OffersNearMap country={featuredCountry as string} offers={featuredCountryOffers} seed={nearMapSeed} />
             </div>
-          </div>
+          ) : (
+            <div className="lg:col-span-5 relative rounded-[48px] overflow-hidden shadow-xl border-4 border-white min-h-[420px]">
+              <img
+                className="w-full h-full object-cover"
+                alt={featuredCountry ? `${featuredCountry} featured destination` : 'Featured destination'}
+                src={featuredCountryImage}
+              />
+              <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/20 to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 p-8 md:p-10 text-white">
+                <h3 className="text-2xl md:text-4xl font-black uppercase tracking-tight mb-3">{featuredCountry}</h3>
+
+                <Link
+                  to="/offers"
+                  className="inline-flex items-center gap-2 bg-white text-primary hover:bg-secondary hover:text-white px-5 py-3 rounded-xl font-sans text-[10px] font-black uppercase tracking-widest transition-all"
+                >
+                  Browse All Offers <ArrowRight size={12} />
+                </Link>
+              </div>
+            </div>
+          )}
         </div>
       </section>
     </div>

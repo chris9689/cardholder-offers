@@ -7,7 +7,7 @@ import { Grid, List, Search, Sparkles, X } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import DyOfferCard from '../components/DyOfferCard';
-import { useCard } from '../contexts/CardContext';
+import { useCard, COUNTRY_EVERYWHERE } from '../contexts/CardContext';
 import { getAllProducts } from '../lib/productFeed';
 import { DyRecommendationSlot, performDySearch } from '../lib/dyServerApi';
 
@@ -65,8 +65,9 @@ function toSlotFromFeed(product: ReturnType<typeof getAllProducts>[number]): DyR
 }
 
 export default function Browse() {
-  const { cardType, userVariables } = useCard();
+  const { cardType, userVariables, selectedCountry } = useCard();
   const selectedTier = userVariables?.cardType ?? cardType;
+  const hasCountryFilter = selectedCountry !== COUNTRY_EVERYWHERE;
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [activeCategory, setActiveCategory] = useState('All');
@@ -123,12 +124,18 @@ export default function Browse() {
   const sourceSlots = hasActiveSearch ? searchResults ?? [] : tierFeedSlots;
 
   const visibleSlots = useMemo(() => {
-    if (activeCategory === 'All') {
-      return sourceSlots;
+    let slots = sourceSlots;
+
+    if (hasCountryFilter) {
+      slots = slots.filter((slot) => slot.productData.offer_country === selectedCountry);
     }
 
-    return sourceSlots.filter((slot) => slot.productData.categories?.[0] === activeCategory);
-  }, [activeCategory, sourceSlots]);
+    if (activeCategory !== 'All') {
+      slots = slots.filter((slot) => slot.productData.categories?.[0] === activeCategory);
+    }
+
+    return slots;
+  }, [activeCategory, sourceSlots, hasCountryFilter, selectedCountry]);
 
   const handleSearchSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -242,6 +249,9 @@ export default function Browse() {
             ) : (
               <>
                 Found <span className="text-primary font-bold">{visibleSlots.length}</span> {selectedTier} offers
+                {hasCountryFilter && (
+                  <> in <span className="text-primary font-bold">{selectedCountry}</span></>
+                )}
               </>
             )}
           </p>
