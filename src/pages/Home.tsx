@@ -163,7 +163,7 @@ export default function Home() {
     };
   }, [pathname, cardType, selectedCountry, isPreparingSession]);
 
-  const PAGE_SIZE = 9;
+  const PAGE_SIZE = 6;
   const slots = homepageData?.recommendations ?? [];
   const totalPages = Math.max(1, Math.ceil(slots.length / PAGE_SIZE));
   const visibleSlots = slots.slice(recsPage * PAGE_SIZE, (recsPage + 1) * PAGE_SIZE);
