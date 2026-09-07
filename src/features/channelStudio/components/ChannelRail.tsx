@@ -8,7 +8,7 @@
 
 import React from 'react';
 import { Bell, Mail, MessageSquare, MessageCircle, Smartphone, Wallet } from 'lucide-react';
-import { CHANNELS } from '../channels/channelRegistry';
+import { ACTIVE_CHANNELS } from '../channels/channelRegistry';
 import type { ChannelId } from '../types';
 
 const ICONS: Record<string, React.ComponentType<{ size?: number; strokeWidth?: number }>> = {
@@ -30,7 +30,7 @@ export default function ChannelRail({ activeChannel, deviceMode, onSelect }: Cha
   return (
     <div className="h-full flex flex-col gap-1.5 p-4 overflow-y-auto" style={{ width: 244 }}>
       <div className="px-2 pb-2 pt-1 text-[10px] font-black uppercase tracking-widest text-white/40">Channels</div>
-      {CHANNELS.map((channel) => {
+      {ACTIVE_CHANNELS.map((channel) => {
         const Icon = ICONS[channel.icon] ?? Bell;
         const isActive = deviceMode === 'single' && channel.enabled && channel.id === activeChannel;
         return (

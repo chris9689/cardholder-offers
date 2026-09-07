@@ -30,8 +30,8 @@ interface EmailPreviewProps {
 }
 
 const FILLER_ROWS = [
-  { from: 'Apple Card', subject: 'Your July statement is ready', snippet: 'View your latest transactions and balance.', time: 'Tue' },
-  { from: 'Calendar', subject: 'Invitation: Q3 Planning', snippet: 'You have been invited to an event.', time: 'Mon' },
+  { from: 'Apple Card', subject: 'Your statement is ready', snippet: 'View your latest transactions and balance.', time: 'Tue' },
+  { from: 'Calendar', subject: 'Invitation: Planning Session', snippet: 'You have been invited to an event.', time: 'Mon' },
 ];
 
 interface OfferTileProps {

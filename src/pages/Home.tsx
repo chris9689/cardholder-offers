@@ -300,7 +300,7 @@ export default function Home() {
       )}
 
       {/* Exclusive Offers Section */}
-      <section className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop mb-24">
+      <section className={`max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop mb-24 ${FEATURES.search ? '' : 'pt-24'}`}>
         <div className="flex justify-between items-end mb-8">
           <div>
             <span className="font-sans text-xs font-bold text-secondary uppercase tracking-[0.3em] mb-3 block">{recsSubtitle}</span>
