@@ -16,7 +16,7 @@ import OffersNearMap from '../components/OffersNearMap';
 import { SkeletonOfferCard, SkeletonCategoryCard, SkeletonFeaturedOffer } from '../components/SkeletonCard';
 import { OFFERS, CATEGORIES, CuratedCategory, rankCuratedCategories } from '../data/offers';
 import { useCard } from '../contexts/CardContext';
-import { USER } from '../config';
+import { USER, FEATURES } from '../config';
 import { getCuratedHomepagePrompts } from '../config/curatedPrompts';
 import { getAllProducts } from '../lib/productFeed';
 import { chooseHomepageGroup, fetchUserAffinities, HomepageChoiceResult, UserAffinityProfile, chooseUserBar } from '../lib/dyServerApi';
@@ -281,7 +281,7 @@ export default function Home() {
       <Hero banner={homepageData?.heroBanner} isLoading={isLoadingHomepage} />
       
       <div className="px-margin-mobile md:px-margin-desktop mb-20 pt-24 max-w-5xl mx-auto w-full">
-        <SearchFilters />
+        {FEATURES.search && <SearchFilters />}
         
         {/* Suggested Searches / Prompts */}
         <div className="mt-6 flex flex-col md:flex-row items-stretch md:items-center justify-start gap-2 w-full md:pl-[90px]">

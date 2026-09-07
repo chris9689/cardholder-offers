@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import React, { useEffect } from 'react';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
@@ -19,6 +19,7 @@ import ChannelStudio from './features/channelStudio';
 import { CardProvider } from './contexts/CardContext';
 import { SessionProvider } from './contexts/SessionContext';
 import { setDyRecommendationContext } from './lib/dynamicYield';
+import { FEATURES } from './config';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -48,7 +49,7 @@ function MainLayout({ children }: { children: React.ReactNode }) {
         {children}
       </main>
       <Footer />
-      <AgentDrawer />
+      {FEATURES.askAgent && <AgentDrawer />}
       <ChannelStudio />
     </div>
   );
@@ -66,9 +67,9 @@ export default function App() {
               <Route path="/" element={<Home />} />
               <Route path="/offers" element={<Browse />} />
               <Route path="/offers/:sku" element={<OfferDetail />} />
-              <Route path="/account" element={<Account />} />
-              <Route path="/savings" element={<Savings />} />
-              <Route path="/search" element={<SearchPage />} />
+              <Route path="/account" element={FEATURES.account ? <Account /> : <Navigate to="/" replace />} />
+              <Route path="/savings" element={FEATURES.savings ? <Savings /> : <Navigate to="/" replace />} />
+              <Route path="/search" element={FEATURES.search ? <SearchPage /> : <Navigate to="/" replace />} />
               <Route path="/curated" element={<CuratedResults />} />
               {/* Fallbacks for menu links not yet implemented */}
               <Route path="/rewards" element={<Browse />} />

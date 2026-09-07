@@ -14,6 +14,17 @@ declare global {
 
 import { CardType } from '../contexts/CardContext';
 
+// Feature Flags
+//
+// Toggle capabilities on/off without deleting code. Flip a flag to `true`
+// to restore the feature (UI, routes, and entry points reappear).
+export const FEATURES = {
+  askAgent: false,
+  search: false,
+  savings: false,
+  account: false,
+} as const;
+
 // Affinity Preset Configuration
 export interface AffinityPresetItem {
   attribute: string;

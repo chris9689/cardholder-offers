@@ -8,7 +8,7 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { useCard, CardType } from '../contexts/CardContext';
-import { BRAND } from '../config';
+import { BRAND, FEATURES } from '../config';
 import AffinityModeSelector from './AffinityModeSelector';
 
 export default function Navbar() {
@@ -28,8 +28,8 @@ export default function Navbar() {
   const navLinks = [
     { name: 'Home', path: '/' },
     { name: 'Offers', path: '/offers' },
-    { name: 'Savings', path: '/savings' },
-    { name: 'My Account', path: '/account' },
+    ...(FEATURES.savings ? [{ name: 'Savings', path: '/savings' }] : []),
+    ...(FEATURES.account ? [{ name: 'My Account', path: '/account' }] : []),
   ];
 
   const cardOptions: CardType[] = ['Standard', 'Premium', 'Black'];
@@ -69,13 +69,15 @@ export default function Navbar() {
 
         {/* Account / Card Type Selector */}
         <div className="flex items-center gap-2">
-          <button 
-            onClick={() => setIsAgentOpen(true)}
-            className="flex items-center gap-1.5 px-4.5 py-2 rounded-full bg-secondary-container/10 border border-secondary/20 hover:border-secondary/40 transition-all text-xs font-black uppercase tracking-widest text-secondary hover:scale-[1.03] active:scale-[0.97]"
-          >
-            <Sparkles size={14} className="animate-pulse" />
-            <span className="hidden sm:inline">Ask Agent</span>
-          </button>
+          {FEATURES.askAgent && (
+            <button
+              onClick={() => setIsAgentOpen(true)}
+              className="flex items-center gap-1.5 px-4.5 py-2 rounded-full bg-secondary-container/10 border border-secondary/20 hover:border-secondary/40 transition-all text-xs font-black uppercase tracking-widest text-secondary hover:scale-[1.03] active:scale-[0.97]"
+            >
+              <Sparkles size={14} className="animate-pulse" />
+              <span className="hidden sm:inline">Ask Agent</span>
+            </button>
+          )}
 
           <div className="relative">
             <button 
@@ -148,16 +150,18 @@ export default function Navbar() {
                 </Link>
               ))}
               
-              <button
-                onClick={() => {
-                  setIsOpen(false);
-                  setIsAgentOpen(true);
-                }}
-                className="font-sans text-xl font-extrabold text-secondary uppercase tracking-tighter flex items-center gap-2 text-left bg-transparent border-none p-0"
-              >
-                <Sparkles size={20} className="animate-pulse text-secondary" />
-                Ask Assistant
-              </button>
+              {FEATURES.askAgent && (
+                <button
+                  onClick={() => {
+                    setIsOpen(false);
+                    setIsAgentOpen(true);
+                  }}
+                  className="font-sans text-xl font-extrabold text-secondary uppercase tracking-tighter flex items-center gap-2 text-left bg-transparent border-none p-0"
+                >
+                  <Sparkles size={20} className="animate-pulse text-secondary" />
+                  Ask Assistant
+                </button>
+              )}
             </div>
           </motion.div>
         )}

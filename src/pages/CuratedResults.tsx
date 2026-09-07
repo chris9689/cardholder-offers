@@ -11,6 +11,7 @@ import DyOfferCard from '../components/DyOfferCard';
 import { useCard } from '../contexts/CardContext';
 import { getCuratedHomepagePrompts } from '../config/curatedPrompts';
 import { DyShoppingMuseResult, performShoppingMuse } from '../lib/dyServerApi';
+import { FEATURES } from '../config';
 
 interface MuseMessage {
   id: string;
@@ -227,12 +228,14 @@ export default function CuratedResults() {
                 {latestWidgets.length > 0 ? 'Muse Recommendations' : 'No recommendations yet'}
               </span>
 
-              <button
-                onClick={() => setIsAgentOpen(true)}
-                className="font-sans text-[10px] font-black uppercase tracking-wider text-on-surface-variant hover:text-primary transition-colors"
-              >
-                Open Agent Drawer
-              </button>
+              {FEATURES.askAgent && (
+                <button
+                  onClick={() => setIsAgentOpen(true)}
+                  className="font-sans text-[10px] font-black uppercase tracking-wider text-on-surface-variant hover:text-primary transition-colors"
+                >
+                  Open Agent Drawer
+                </button>
+              )}
             </div>
 
             {latestWidgets.length === 0 && !isLoading ? (
@@ -289,7 +292,7 @@ export default function CuratedResults() {
           </div>
         </div>
 
-        {latestAssistantMessage?.result?.support === false && (
+        {FEATURES.search && latestAssistantMessage?.result?.support === false && (
           <div className="mt-8 text-center">
             <p className="font-sans text-xs text-on-surface-variant opacity-70 mb-3">
               If the AI Assistant was unable to find any relevant recommendations for you, try asking a different question or go to the search page to browse all offers.
