@@ -280,22 +280,24 @@ export default function Home() {
 
       <Hero banner={homepageData?.heroBanner} isLoading={isLoadingHomepage} />
       
-      <div className="px-margin-mobile md:px-margin-desktop mb-20 pt-24 max-w-5xl mx-auto w-full">
-        {FEATURES.search && <SearchFilters />}
-        
-        {/* Suggested Searches / Prompts */}
-        <div className="mt-6 flex flex-col md:flex-row items-stretch md:items-center justify-start gap-2 w-full md:pl-[90px]">
-          {suggestedPrompts.map((prompt) => (
-            <Link
-              key={prompt.id}
-              to={`/curated?prompt=${encodeURIComponent(prompt.text)}`}
-              className="inline-flex items-center justify-center md:justify-start gap-1.5 bg-white text-primary border border-outline-variant/10 hover:border-secondary hover:bg-secondary/5 px-4 py-3 md:py-2.5 rounded-xl font-sans text-[10px] font-black uppercase tracking-wider transition-all shadow-sm text-center md:text-left"
-            >
-              {prompt.label}
-            </Link>
-          ))}
+      {FEATURES.search && (
+        <div className="px-margin-mobile md:px-margin-desktop mb-20 pt-24 max-w-5xl mx-auto w-full">
+          <SearchFilters />
+          
+          {/* Suggested Searches / Prompts */}
+          <div className="mt-6 flex flex-col md:flex-row items-stretch md:items-center justify-start gap-2 w-full md:pl-[90px]">
+            {suggestedPrompts.map((prompt) => (
+              <Link
+                key={prompt.id}
+                to={`/curated?prompt=${encodeURIComponent(prompt.text)}`}
+                className="inline-flex items-center justify-center md:justify-start gap-1.5 bg-white text-primary border border-outline-variant/10 hover:border-secondary hover:bg-secondary/5 px-4 py-3 md:py-2.5 rounded-xl font-sans text-[10px] font-black uppercase tracking-wider transition-all shadow-sm text-center md:text-left"
+              >
+                {prompt.label}
+              </Link>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Exclusive Offers Section */}
       <section className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop mb-24">
