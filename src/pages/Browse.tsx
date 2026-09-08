@@ -7,7 +7,7 @@ import { Grid, List, Search, Sparkles, X } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import DyOfferCard from '../components/DyOfferCard';
-import { useCard, COUNTRY_EVERYWHERE } from '../contexts/CardContext';
+import { useCard, COUNTRY_EVERYWHERE, COUNTRY_UNITED_STATES } from '../contexts/CardContext';
 import { getAllProducts } from '../lib/productFeed';
 import { DyRecommendationSlot, performDySearch } from '../lib/dyServerApi';
 
@@ -67,7 +67,11 @@ function toSlotFromFeed(product: ReturnType<typeof getAllProducts>[number]): DyR
 export default function Browse() {
   const { cardType, userVariables, selectedCountry } = useCard();
   const selectedTier = userVariables?.cardType ?? cardType;
-  const hasCountryFilter = selectedCountry !== COUNTRY_EVERYWHERE;
+  // Standard tier is domestic-only, so its offers are always scoped to the US
+  // regardless of the (hidden) country selection.
+  const isStandard = selectedTier === 'Standard';
+  const effectiveCountry = isStandard ? COUNTRY_UNITED_STATES : selectedCountry;
+  const hasCountryFilter = effectiveCountry !== COUNTRY_EVERYWHERE;
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [activeCategory, setActiveCategory] = useState('All');
@@ -75,6 +79,7 @@ export default function Browse() {
   const [activeQuery, setActiveQuery] = useState('');
   const [searchResults, setSearchResults] = useState<DyRecommendationSlot[] | null>(null);
   const [isSearching, setIsSearching] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   const tierFeedSlots = useMemo(() => {
     const feedProducts = getAllProducts();
@@ -127,7 +132,7 @@ export default function Browse() {
     let slots = sourceSlots;
 
     if (hasCountryFilter) {
-      slots = slots.filter((slot) => slot.productData.offer_country === selectedCountry);
+      slots = slots.filter((slot) => slot.productData.offer_country === effectiveCountry);
     }
 
     if (activeCategory !== 'All') {
@@ -135,7 +140,7 @@ export default function Browse() {
     }
 
     return slots;
-  }, [activeCategory, sourceSlots, hasCountryFilter, selectedCountry]);
+  }, [activeCategory, sourceSlots, hasCountryFilter, effectiveCountry]);
 
   const handleSearchSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -229,8 +234,24 @@ export default function Browse() {
                 />
               </form>
               <div className="flex border border-outline-variant/10 rounded-2xl overflow-hidden shadow-sm">
-                 <button className="p-4 bg-primary text-white"><Grid size={20} /></button>
-                 <button className="p-4 bg-white text-on-surface-variant hover:bg-surface-container"><List size={20} /></button>
+                 <button
+                   type="button"
+                   onClick={() => setViewMode('grid')}
+                   aria-label="Grid view"
+                   aria-pressed={viewMode === 'grid'}
+                   className={`p-4 transition-colors ${viewMode === 'grid' ? 'bg-primary text-white' : 'bg-white text-on-surface-variant hover:bg-surface-container'}`}
+                 >
+                   <Grid size={20} />
+                 </button>
+                 <button
+                   type="button"
+                   onClick={() => setViewMode('list')}
+                   aria-label="List view"
+                   aria-pressed={viewMode === 'list'}
+                   className={`p-4 transition-colors ${viewMode === 'list' ? 'bg-primary text-white' : 'bg-white text-on-surface-variant hover:bg-surface-container'}`}
+                 >
+                   <List size={20} />
+                 </button>
               </div>
             </div>
           </div>
@@ -272,9 +293,15 @@ export default function Browse() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+        <div
+          className={
+            viewMode === 'list'
+              ? 'flex flex-col gap-6'
+              : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8'
+          }
+        >
           {visibleSlots.map((slot) => (
-            <DyOfferCard key={slot.sku} slot={slot} />
+            <DyOfferCard key={slot.sku} slot={slot} variant={viewMode} />
           ))}
         </div>
 

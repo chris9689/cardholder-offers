@@ -7,9 +7,10 @@ import { useSession } from '../contexts/SessionContext';
 
 interface DyOfferCardProps {
   slot: DyRecommendationSlot;
+  variant?: 'grid' | 'list';
 }
 
-const DyOfferCard: React.FC<DyOfferCardProps> = ({ slot }) => {
+const DyOfferCard: React.FC<DyOfferCardProps> = ({ slot, variant = 'grid' }) => {
   const { productData, sku } = slot;
   const category = productData.categories?.[0] ?? '';
   const brand = productData.brand ?? sku;
@@ -23,6 +24,99 @@ const DyOfferCard: React.FC<DyOfferCardProps> = ({ slot }) => {
     e.stopPropagation();
     toggleLike(sku);
   };
+
+  if (variant === 'list') {
+    return (
+      <motion.div
+        whileHover={{ x: 4 }}
+        className="bg-white rounded-xl overflow-hidden border border-outline-variant/30 group shadow-sm hover:shadow-xl transition-all duration-500 flex flex-col sm:flex-row"
+      >
+        <div className="h-48 sm:h-auto sm:w-64 sm:shrink-0 relative overflow-hidden">
+          {productData.image_url ? (
+            <img
+              alt={brand}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+              src={productData.image_url}
+            />
+          ) : (
+            <div className="w-full h-full bg-surface-container-high flex items-center justify-center">
+              {productData.logo_url && (
+                <img
+                  alt={brand}
+                  className="h-16 w-auto object-contain"
+                  src={productData.logo_url}
+                />
+              )}
+            </div>
+          )}
+          <motion.button
+            onClick={handleHeartClick}
+            whileScale={{ scale: 1.15 }}
+            className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center text-on-surface-variant transition-colors shadow-sm"
+          >
+            <Heart
+              size={18}
+              className={isLiked ? 'fill-red-500 text-red-500' : 'hover:text-red-500'}
+            />
+          </motion.button>
+        </div>
+
+        <div className="p-5 flex flex-col gap-2 flex-1 min-w-0">
+          <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              {productData.logo_url ? (
+                <div className="w-6 h-6 rounded bg-surface-container-high flex items-center justify-center border border-outline-variant/20 overflow-hidden shrink-0">
+                  <img
+                    alt={brand}
+                    className="w-full h-full object-contain"
+                    src={productData.logo_url}
+                  />
+                </div>
+              ) : (
+                <div className="w-6 h-6 rounded bg-surface-container-high flex items-center justify-center text-[10px] font-bold text-primary border border-outline-variant/20">
+                  {brand.slice(0, 2).toUpperCase()}
+                </div>
+              )}
+              <span className="font-sans text-xs font-semibold text-on-surface-variant uppercase tracking-wider truncate">
+                {brand}
+              </span>
+            </div>
+            {category && (
+              <span className="text-[10px] font-bold text-secondary uppercase tracking-widest bg-secondary-fixed/30 px-2 py-0.5 rounded max-w-full sm:max-w-[45%] truncate whitespace-nowrap shrink-0">
+                {category}
+              </span>
+            )}
+          </div>
+
+          <h3 className="font-sans text-base md:text-lg font-black text-primary leading-tight line-clamp-2 uppercase tracking-tight">
+            {productData.name}
+          </h3>
+
+          <div className="mt-auto pt-4 flex items-center justify-between border-t border-outline-variant/10">
+            <Link
+              to={offerPath}
+              className={`font-sans text-sm font-bold ${
+                isActivated
+                  ? 'text-green-600 flex items-center gap-1'
+                  : 'text-secondary hover:underline underline-offset-4 decoration-2'
+              }`}
+            >
+              {isActivated ? (
+                <>
+                  <span>✓</span> Activated
+                </>
+              ) : (
+                'Activate Offer'
+              )}
+            </Link>
+            <Link to={offerPath} className="text-on-surface-variant hover:text-primary transition-colors">
+              <ExternalLink size={18} />
+            </Link>
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div

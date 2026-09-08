@@ -6,11 +6,14 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronDown, Globe, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { useCard, COUNTRY_EVERYWHERE } from '../contexts/CardContext';
+import { useCard, COUNTRY_EVERYWHERE, COUNTRY_UNITED_STATES } from '../contexts/CardContext';
 import { getFeedCountries } from '../lib/productFeed';
 
 export default function CountrySelector() {
-  const { selectedCountry, setSelectedCountry } = useCard();
+  const { cardType, userVariables, selectedCountry, setSelectedCountry } = useCard();
+  const selectedTier = userVariables?.cardType ?? cardType;
+  // Standard tier is domestic-only: lock the selector to the United States.
+  const isStandard = selectedTier === 'Standard';
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -31,8 +34,13 @@ export default function CountrySelector() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen]);
 
-  const options = [COUNTRY_EVERYWHERE, ...countries];
-  const label = selectedCountry === COUNTRY_EVERYWHERE ? 'Explore Offers Everywhere' : `Explore Offers in ${selectedCountry}`;
+  const options = isStandard ? [COUNTRY_UNITED_STATES] : [COUNTRY_EVERYWHERE, ...countries];
+  const effectiveCountry = isStandard ? COUNTRY_UNITED_STATES : selectedCountry;
+  const label = isStandard
+    ? `Explore Offers in ${COUNTRY_UNITED_STATES}`
+    : selectedCountry === COUNTRY_EVERYWHERE
+    ? 'Explore Offers Everywhere'
+    : `Explore Offers in ${selectedCountry}`;
 
   const handleSelect = (country: string) => {
     setSelectedCountry(country);
@@ -67,7 +75,7 @@ export default function CountrySelector() {
               Select Country
             </li>
             {options.map((country) => {
-              const isSelected = country === selectedCountry;
+              const isSelected = country === effectiveCountry;
               const optionLabel = country === COUNTRY_EVERYWHERE ? 'Everywhere' : country;
               return (
                 <li key={country} role="option" aria-selected={isSelected}>

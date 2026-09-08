@@ -18,6 +18,9 @@ const PENDING_PRESET_STORAGE_KEY = 'cardholder.offers.pendingPreset';
 // Sentinel value representing "Everywhere" (no country filter).
 export const COUNTRY_EVERYWHERE = 'Everywhere';
 
+// Standard tier is domestic-only: offers are always scoped to the United States.
+export const COUNTRY_UNITED_STATES = 'United States';
+
 function isCardType(value: string): value is CardType {
   return value === 'Standard' || value === 'Premium' || value === 'Black';
 }

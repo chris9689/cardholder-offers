@@ -248,9 +248,22 @@ export default function Home() {
   const featuredCountryOffers = featuredCountry
     ? tierEligibleOffers.filter((offer) => offer.offer_country === featuredCountry)
     : [];
-  const featuredOffers = [...featuredCountryOffers]
-    .sort((a, b) => a.brand.localeCompare(b.brand))
-    .slice(0, 3);
+  const featuredOffers = (() => {
+    const seenBrands = new Set<string>();
+    const unique: typeof featuredCountryOffers = [];
+    for (const offer of [...featuredCountryOffers].sort((a, b) => a.brand.localeCompare(b.brand))) {
+      const brandKey = offer.brand.trim().toLowerCase();
+      if (seenBrands.has(brandKey)) {
+        continue;
+      }
+      seenBrands.add(brandKey);
+      unique.push(offer);
+      if (unique.length === 3) {
+        break;
+      }
+    }
+    return unique;
+  })();
   const featuredCountryImage = getCountryHeroImage(featuredCountry || '', featuredCountryOffers);
   // Standard tier is domestic (US), and any explicit country selection both call
   // for the interactive "Offers Near You" map instead of the affinity image panel.
