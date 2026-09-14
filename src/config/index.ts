@@ -13,6 +13,7 @@ declare global {
 }
 
 import { CardType } from '../contexts/CardContext';
+import mcLogo from '../public/mc_logo1.png';
 
 // Feature Flags
 //
@@ -21,8 +22,8 @@ import { CardType } from '../contexts/CardContext';
 export const FEATURES = {
   askAgent: false,
   search: false,
-  savings: false,
-  account: false,
+  savings: true,
+  account: true,
 } as const;
 
 // Affinity Preset Configuration
@@ -52,8 +53,7 @@ export const AFFINITY_PRESETS: Record<CardType, AffinityPresetItem[]> = {
 
 export const BRAND = {
   name: 'Spending Offers',
-  logoUrl:
-    'https://lh3.googleusercontent.com/aida-public/AB6AXuCmuskyyhrHeFWM3b12DTZNny1RwsOiUZI-7b6HpTHUfqogyUJl-wjj_KPhEnEUiBcvOGYVLiSpOW5z7SIwz4p47URs1z85CcDuIBXBXSO7gU2xSzFOWRx1_w3f0UR9ghQH_-Wb2Ocw0GGk0GLeQDyy0SkUkGyzTTqxpnloUjFv3hwAs-4YWOpEnvp9e1lYNOV3khBvWWis94S6QCN3vo73qM0XhDk-6uPhI7n_Ck_O2W8SKQ8W-4OOrBN2B5Wac77aQ5dTCBBxYJ0',
+  logoUrl: mcLogo,
   logoAlt: 'Mastercard Logo',
   footerCopy: '(c) 2026 Mastercard. All rights reserved.',
 } as const;

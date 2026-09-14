@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { ArrowRight, ChevronLeft, ChevronRight, Diamond, MapPin, ShieldCheck, Wallet } from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight, Diamond, ShieldCheck, Wallet } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import Hero from '../components/Hero';
@@ -136,6 +136,7 @@ export default function Home() {
   const [recsPage, setRecsPage] = useState(0);
   const [curatedCategories, setCuratedCategories] = useState<CuratedCategory[]>(CATEGORIES);
   const [affinityProfile, setAffinityProfile] = useState<UserAffinityProfile | null>(null);
+  const [nearMapExpanded, setNearMapExpanded] = useState(false);
 
   useEffect(() => {
     // Wait until any pending preset affinity has been informed after a reload,
@@ -402,9 +403,9 @@ export default function Home() {
       </section>
 
       {/* Featured Offers */}
-      <section className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop mb-24">
+      <section className="max-w-max-width w-full mx-auto px-margin-mobile md:px-margin-desktop mb-24">
         <div className="grid lg:grid-cols-12 gap-8 items-stretch">
-          <div className="lg:col-span-7">
+          <div className={showNearMap && nearMapExpanded ? 'hidden' : 'lg:col-span-7'}>
             <span className="font-sans text-xs font-bold text-secondary uppercase tracking-[0.3em] mb-3 block">Featured Offers</span>
             <h2 className="text-3xl md:text-4xl text-primary mb-3">
               {showNearMap ? 'Offers Near You' : `Explore Offers In ${featuredCountry}`}
@@ -416,7 +417,6 @@ export default function Home() {
               {isLoadingCategories
                 ? [...Array(3)].map((_, i) => <SkeletonFeaturedOffer key={`skeleton-featured-${i}`} />)
                 : featuredOffers.map((offer) => {
-                const cityLabel = getCityFromSku(offer.sku);
                 const categoryLabel = CATEGORY_NAME_BY_KEY[offer.categories] || offer.categories;
 
                 return (
@@ -438,9 +438,6 @@ export default function Home() {
                           <h4 className="font-sans text-lg md:text-xl font-extrabold text-primary truncate group-hover:text-secondary transition-colors">
                             {offer.brand}
                           </h4>
-                          <span className="text-[10px] font-black uppercase tracking-wider text-secondary bg-secondary/10 px-2.5 py-1 rounded-full shrink-0 flex items-center gap-1">
-                            <MapPin size={11} /> {cityLabel}
-                          </span>
                         </div>
                         <p className="font-sans text-sm text-on-surface-variant leading-relaxed line-clamp-2 mb-3">
                           {offer.name}
@@ -470,8 +467,14 @@ export default function Home() {
           </div>
 
           {showNearMap ? (
-            <div className="lg:col-span-5">
-              <OffersNearMap country={featuredCountry as string} offers={featuredCountryOffers} seed={nearMapSeed} />
+            <div className={nearMapExpanded ? 'col-span-full' : 'lg:col-span-5'}>
+              <OffersNearMap
+                country={featuredCountry as string}
+                offers={featuredCountryOffers}
+                seed={nearMapSeed}
+                expanded={nearMapExpanded}
+                onToggleExpand={() => setNearMapExpanded((v) => !v)}
+              />
             </div>
           ) : (
             <div className="lg:col-span-5 relative rounded-[48px] overflow-hidden shadow-xl border-4 border-white min-h-[420px]">

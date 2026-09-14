@@ -25,10 +25,10 @@ export default function Navbar() {
     cancelCardTypeChange,
   } = useCard();
 
+  // Savings intentionally omitted from the nav; it is reachable via My Account.
   const navLinks = [
     { name: 'Home', path: '/' },
     { name: 'Offers', path: '/offers' },
-    ...(FEATURES.savings ? [{ name: 'Savings', path: '/savings' }] : []),
     ...(FEATURES.account ? [{ name: 'My Account', path: '/account' }] : []),
   ];
 

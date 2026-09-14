@@ -24,7 +24,7 @@ export default function ChannelStudioFab() {
           exit={{ opacity: 0, y: 20, scale: 0.9 }}
           transition={{ type: 'spring', damping: 22, stiffness: 260 }}
           onClick={open}
-          className="fixed z-60 flex items-center gap-2.5 rounded-full bg-primary text-white shadow-2xl hover:scale-[1.04] active:scale-[0.97] transition-transform"
+          className="fixed z-60 hidden sm:flex items-center gap-2.5 rounded-full bg-primary text-white shadow-2xl hover:scale-[1.04] active:scale-[0.97] transition-transform"
           style={{ bottom: 24, left: 24, padding: '14px 20px', border: '1px solid rgba(255,255,255,0.12)' }}
           aria-label="Preview other channels"
         >

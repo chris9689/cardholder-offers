@@ -193,7 +193,7 @@ export default function Account() {
         {/* Activity & History Column */}
         <div className="lg:col-span-8 space-y-12">
           <div className="flex justify-between items-baseline mb-4 ml-4">
-            <h2 className="text-3xl text-primary font-black">Recent Activated Offers</h2>
+            <h2 className="text-3xl text-primary font-black">Recent Transactions</h2>
             <Link to="/savings" className="text-[10px] font-black text-secondary uppercase tracking-[0.2em] border-b border-secondary/30 pb-0.5">Full Savings</Link>
           </div>
           

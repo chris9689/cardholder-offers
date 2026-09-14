@@ -418,6 +418,75 @@ export async function choosePdpRecommendations(sku: string, cardType: CardType):
   return fallback;
 }
 
+/**
+ * Savings-page recommendations. Reuses the PDP recommendation widget/endpoint
+ * but tags the request with a custom `page_type: 'savings'` page attribute so
+ * the traffic can be differentiated in DY logging/reporting. An optional seed
+ * SKU (e.g. the first activated offer) provides product context for the recs.
+ */
+export async function chooseSavingsRecommendations(cardType: CardType, seedSku?: string): Promise<PdpChoiceResult> {
+  const base = buildBasePayload('/savings', cardType);
+  const payload = {
+    ...base,
+    context: {
+      ...base.context,
+      page: {
+        type: 'PRODUCT',
+        location: window.location.href,
+        data: seedSku ? [seedSku] : base.context.page.data,
+      },
+      pageAttributes: {
+        ...base.context.pageAttributes,
+        page_type: 'savings',
+      },
+    },
+    selector: {
+      names: ['PDP Recommendation'],
+      groups: ['Productpage'],
+    },
+    options: {
+      isImplicitPageview: true,
+      returnAnalyticsMetadata: false,
+      isImplicitImpressionMode: true,
+      isImplicitClientData: false,
+    },
+  };
+
+  const fallback: PdpChoiceResult = {
+    recommendations: [],
+    recsTitle: 'Explore Offers to Activate Now',
+  };
+
+  const response = await fetch('/api/dy/choose', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(payload),
+    credentials: 'same-origin',
+  });
+
+  if (!response.ok) {
+    return fallback;
+  }
+
+  const body = await response.json();
+  applyReturnedCookies(body?.cookies);
+
+  for (const choice of body?.choices ?? []) {
+    const variation = choice?.variations?.[0];
+    if (choice?.type !== 'RECS_DECISION' || !variation?.payload?.data) {
+      continue;
+    }
+
+    const data = variation.payload.data as { custom?: { title?: string }; slots?: DyRecommendationSlot[] };
+    return {
+      recommendations: data.slots ?? [],
+      recsTitle: data.custom?.title ?? fallback.recsTitle,
+    };
+  }
+
+  return fallback;
+}
+
 export type { HeroBannerPayload };
 
 // ─── Experience Search ────────────────────────────────────────────────────────
