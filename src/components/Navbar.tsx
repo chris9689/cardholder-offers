@@ -3,17 +3,19 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { CreditCard, Menu, X, ChevronDown, Sparkles } from 'lucide-react';
+import { CreditCard, Menu, X, ChevronDown, Sparkles, Fingerprint } from 'lucide-react';
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { useCard, CardType } from '../contexts/CardContext';
 import { BRAND, FEATURES } from '../config';
 import AffinityModeSelector from './AffinityModeSelector';
+import AffinityProfileOverlay from './AffinityProfileOverlay';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [showCardMenu, setShowCardMenu] = useState(false);
+  const [showAffinity, setShowAffinity] = useState(false);
   const location = useLocation();
   const {
     cardType,
@@ -76,6 +78,17 @@ export default function Navbar() {
             >
               <Sparkles size={14} className="animate-pulse" />
               <span className="hidden sm:inline">Ask Agent</span>
+            </button>
+          )}
+
+          {FEATURES.affinityProfile && (
+            <button
+              onClick={() => setShowAffinity(true)}
+              aria-label="Your Affinity Profile"
+              title="Your Affinity Profile"
+              className="flex items-center justify-center w-9 h-9 rounded-full bg-surface-container-low border border-outline-variant/20 hover:border-secondary/40 transition-all text-secondary hover:scale-[1.03] active:scale-[0.97]"
+            >
+              <Fingerprint size={15} />
             </button>
           )}
 
@@ -175,6 +188,14 @@ export default function Navbar() {
         onConfirm={confirmCardTypeChange}
         onCancel={cancelCardTypeChange}
       />
+
+      {FEATURES.affinityProfile && (
+        <AffinityProfileOverlay
+          isOpen={showAffinity}
+          onClose={() => setShowAffinity(false)}
+          cardType={cardType}
+        />
+      )}
     </>
   );
 }

@@ -51,7 +51,27 @@ export default async function handler(req, res) {
       (body?.countryAffinities && typeof body.countryAffinities === 'object' && body.countryAffinities) ||
       {};
 
-    json(res, 200, { uid, categories, countries: countriesSource });
+    // Forward every attribute map (value -> score), e.g. categories, brand,
+    // offer_country, so richer affinity profiles can be surfaced client-side.
+    const attributes = {};
+    if (body && typeof body === 'object') {
+      for (const [key, value] of Object.entries(body)) {
+        if (value && typeof value === 'object' && !Array.isArray(value)) {
+          const map = {};
+          for (const [v, s] of Object.entries(value)) {
+            const numeric = Number(s);
+            if (Number.isFinite(numeric)) {
+              map[v] = numeric;
+            }
+          }
+          if (Object.keys(map).length) {
+            attributes[key] = map;
+          }
+        }
+      }
+    }
+
+    json(res, 200, { uid, categories, countries: countriesSource, attributes });
   } catch (error) {
     json(res, 500, { error: error instanceof Error ? error.message : 'Unexpected server error' });
   }

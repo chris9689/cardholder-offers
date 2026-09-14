@@ -28,6 +28,8 @@ export const FEATURES = {
   // active card tier and drop duplicate brands. Set to false once DY returns
   // correctly tier-scoped, de-duplicated recommendations.
   dedupeHomeRecs: true,
+  // Shows the "Your Affinity Profile" pill next to the card tier selector.
+  affinityProfile: true,
 } as const;
 
 // Affinity Preset Configuration

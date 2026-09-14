@@ -1008,3 +1008,78 @@ export async function fetchUserAffinities(): Promise<UserAffinityProfile | null>
     return null;
   }
 }
+
+export interface AffinityAttributesResult {
+  uid: string;
+  attributes: Record<string, Record<string, number>>;
+}
+
+// Richer affinity view: returns every attribute map (categories, brand,
+// offer_country, ...) keyed by attribute, each a value -> score record.
+export async function fetchUserAffinityAttributes(): Promise<AffinityAttributesResult | null> {
+  const identity = readIdentity();
+  const uid = identity.user.dyid;
+
+  if (!uid) {
+    return null;
+  }
+
+  const parseMap = (raw: unknown): Record<string, number> => {
+    const map: Record<string, number> = {};
+    if (raw && typeof raw === 'object') {
+      for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
+        const numeric = Number(value);
+        if (Number.isFinite(numeric)) {
+          map[key] = numeric;
+        }
+      }
+    }
+    return map;
+  };
+
+  try {
+    const response = await fetch('/api/dy/user-affinities', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ uid }),
+      credentials: 'same-origin',
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const body = await response.json();
+    const attributes: Record<string, Record<string, number>> = {};
+
+    const rawAttrs = body?.attributes;
+    if (rawAttrs && typeof rawAttrs === 'object') {
+      for (const [attr, map] of Object.entries(rawAttrs as Record<string, unknown>)) {
+        const parsed = parseMap(map);
+        if (Object.keys(parsed).length) {
+          attributes[attr] = parsed;
+        }
+      }
+    }
+
+    // Backward-compatible fallback from the flat categories/countries fields.
+    if (Object.keys(attributes).length === 0) {
+      const cats = parseMap(body?.categories);
+      const countries = parseMap(body?.countries);
+      if (Object.keys(cats).length) {
+        attributes.categories = cats;
+      }
+      if (Object.keys(countries).length) {
+        attributes.offer_country = countries;
+      }
+    }
+
+    if (Object.keys(attributes).length === 0) {
+      return null;
+    }
+
+    return { uid, attributes };
+  } catch {
+    return null;
+  }
+}
