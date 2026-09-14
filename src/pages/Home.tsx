@@ -4,7 +4,7 @@
  */
 
 import { ArrowRight, ChevronLeft, ChevronRight, Diamond, ShieldCheck, Wallet } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import Hero from '../components/Hero';
 import SearchFilters from '../components/SearchFilters';
@@ -165,7 +165,28 @@ export default function Home() {
   }, [pathname, cardType, selectedCountry, isPreparingSession]);
 
   const PAGE_SIZE = 6;
-  const slots = homepageData?.recommendations ?? [];
+  const rawSlots = homepageData?.recommendations ?? [];
+  // DY occasionally returns cross-tier and duplicate-brand recs. When enabled,
+  // keep only the active tier's offers and drop repeated brands client-side.
+  const slots = useMemo(() => {
+    if (!FEATURES.dedupeHomeRecs) {
+      return rawSlots;
+    }
+    const activeTier = String(userVariables?.cardType ?? cardType).toLowerCase();
+    const seenBrands = new Set<string>();
+    return rawSlots.filter((slot) => {
+      const slotTier = String(slot.productData.card_tier ?? '').toLowerCase();
+      if (slotTier && slotTier !== activeTier) {
+        return false;
+      }
+      const brandKey = String(slot.productData.brand ?? slot.sku).trim().toLowerCase();
+      if (seenBrands.has(brandKey)) {
+        return false;
+      }
+      seenBrands.add(brandKey);
+      return true;
+    });
+  }, [rawSlots, cardType, userVariables]);
   const totalPages = Math.max(1, Math.ceil(slots.length / PAGE_SIZE));
   const visibleSlots = slots.slice(recsPage * PAGE_SIZE, (recsPage + 1) * PAGE_SIZE);
   const recsTitle = homepageData?.recsTitle ?? 'Your Exclusive Offers';

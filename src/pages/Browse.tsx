@@ -271,7 +271,7 @@ export default function Browse() {
               <>
                 Found <span className="text-primary font-bold">{visibleSlots.length}</span> {selectedTier} offers
                 {hasCountryFilter && (
-                  <> in <span className="text-primary font-bold">{selectedCountry}</span></>
+                  <> in <span className="text-primary font-bold">{effectiveCountry}</span></>
                 )}
               </>
             )}

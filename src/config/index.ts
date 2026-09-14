@@ -24,6 +24,10 @@ export const FEATURES = {
   search: false,
   savings: true,
   account: true,
+  // Client-side safeguard for homepage recs: filter DY recommendations to the
+  // active card tier and drop duplicate brands. Set to false once DY returns
+  // correctly tier-scoped, de-duplicated recommendations.
+  dedupeHomeRecs: true,
 } as const;
 
 // Affinity Preset Configuration
