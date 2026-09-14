@@ -13,14 +13,36 @@ import type { ProductFeedItem } from '../lib/productFeed';
 // ---------------------------------------------------------------------------
 // City focus
 //
-// The "Offers Near You" map focuses on a single city. To switch cities later,
-// change ACTIVE_CITY_CODE and add a matching entry to CITY_INFO plus a map-art
-// renderer (currently only New York is hand-drawn — see <NycMapArt />).
+// The "Offers Near You" map showcases one city per country. The focus city is
+// chosen automatically (the city with the most offers in the selected country).
+// New York keeps its hand-drawn art; every other city uses the generic
+// procedural map. Add entries below to label additional city codes; unknown
+// codes fall back to the country name.
 // ---------------------------------------------------------------------------
-const ACTIVE_CITY_CODE = 'NYC';
-
 const CITY_INFO: Record<string, { name: string; label: string }> = {
+  // United States
   NYC: { name: 'New York', label: 'Manhattan' },
+  LAX: { name: 'Los Angeles', label: 'California' },
+  CHI: { name: 'Chicago', label: 'Illinois' },
+  MIA: { name: 'Miami', label: 'Florida' },
+  // France
+  PAR: { name: 'Paris', label: 'Île-de-France' },
+  LYN: { name: 'Lyon', label: 'France' },
+  MRS: { name: 'Marseille', label: 'France' },
+  NCE: { name: 'Nice', label: 'France' },
+  // Italy
+  MIL: { name: 'Milan', label: 'Lombardy' },
+  ROM: { name: 'Rome', label: 'Lazio' },
+  FLO: { name: 'Florence', label: 'Tuscany' },
+  NAP: { name: 'Naples', label: 'Campania' },
+  // Spain
+  MAD: { name: 'Madrid', label: 'Spain' },
+  BCN: { name: 'Barcelona', label: 'Catalonia' },
+  SEV: { name: 'Seville', label: 'Andalusia' },
+  VAL: { name: 'Valencia', label: 'Spain' },
+  // United Arab Emirates
+  DXB: { name: 'Dubai', label: 'UAE' },
+  AUH: { name: 'Abu Dhabi', label: 'UAE' },
 };
 
 // Cap the number of offer pins rendered so the map stays readable.
@@ -199,6 +221,76 @@ function NycMapArt() {
   );
 }
 
+// Procedural stylized city used for every showcase city except New York. Seeded
+// by the city so each renders a distinct-but-plausible street grid, a corner
+// bay, a river channel, parks, and a boulevard.
+function GenericCityMapArt({ citySeed, cityName }: { citySeed: number; cityName: string }) {
+  const rng = mulberry32(citySeed || 1);
+
+  const corners: Array<[number, number]> = [
+    [0, 0],
+    [140, 0],
+    [0, 100],
+    [140, 100],
+  ];
+  const [bayX, bayY] = corners[Math.floor(rng() * 4) % 4];
+  const bayR = 30 + rng() * 12;
+
+  // Keep the river out of the dead-center pin cluster (upper or lower third).
+  const riverY = rng() < 0.5 ? 22 + rng() * 8 : 68 + rng() * 8;
+  const amp = 6 + rng() * 8;
+  const riverW = 4.5 + rng() * 2.5;
+  const riverPath = `M -14 ${riverY} C 30 ${riverY - amp} 55 ${riverY + amp} 78 ${riverY} S 128 ${riverY - amp} 154 ${riverY}`;
+
+  const boulevardX = 40 + rng() * 60;
+  const streets = [8, 16, 24, 32, 40, 48, 56, 64, 72, 80, 88, 96];
+  const avenues = [8, 16, 24, 32, 40, 48, 56, 64, 72, 80, 88, 96, 104, 112, 120, 128];
+
+  // One park near the centre so the collapsed (zoomed) view has a landmark.
+  const park1 = { x: 58 + rng() * 8, y: 34 + rng() * 8, w: 10 + rng() * 4, h: 9 + rng() * 4 };
+  const park2 = { x: 10 + rng() * 20, y: 58 + rng() * 20, w: 9 + rng() * 5, h: 8 + rng() * 5 };
+
+  return (
+    <>
+      {/* Land base (covers the widened expanded viewBox) */}
+      <rect x={-40} y={-20} width={220} height={140} fill={LAND_OUTER} />
+
+      {/* Street grid */}
+      <g>
+        {streets.map((y) => (
+          <line key={`gsh-c-${y}`} x1={-14} y1={y} x2={154} y2={y} stroke={ROAD_CASING} strokeWidth={1.1} />
+        ))}
+        {streets.map((y) => (
+          <line key={`gsh-f-${y}`} x1={-14} y1={y} x2={154} y2={y} stroke={ROAD_FILL} strokeWidth={0.7} />
+        ))}
+        {avenues.map((x) => (
+          <line key={`gav-c-${x}`} x1={x} y1={-14} x2={x} y2={114} stroke={ROAD_CASING} strokeWidth={1.3} />
+        ))}
+        {avenues.map((x) => (
+          <line key={`gav-f-${x}`} x1={x} y1={-14} x2={x} y2={114} stroke={ROAD_FILL} strokeWidth={0.85} />
+        ))}
+      </g>
+
+      {/* Diagonal boulevard */}
+      <line x1={boulevardX} y1={-14} x2={boulevardX - 40} y2={114} stroke={ROAD_CASING} strokeWidth={2.2} />
+      <line x1={boulevardX} y1={-14} x2={boulevardX - 40} y2={114} stroke={HIGHWAY} strokeWidth={1.3} />
+
+      {/* Parks */}
+      <rect x={park1.x} y={park1.y} width={park1.w} height={park1.h} rx={1.5} fill={GREEN} />
+      <rect x={park2.x} y={park2.y} width={park2.w} height={park2.h} rx={1.5} fill={GREEN} />
+
+      {/* Water: corner bay + river channel (drawn on top to interrupt the grid) */}
+      <circle cx={bayX} cy={bayY} r={bayR} fill={WATER} />
+      <path d={riverPath} fill="none" stroke={WATER} strokeWidth={riverW} strokeLinecap="round" />
+
+      {/* City label */}
+      <text x={70} y={54} fill={LABEL} fontSize={4} fontWeight={800} textAnchor="middle" opacity={0.5} style={{ letterSpacing: '0.16em' }}>
+        {cityName.toUpperCase()}
+      </text>
+    </>
+  );
+}
+
 interface OfferPin {
   x: number;
   y: number;
@@ -228,14 +320,36 @@ export default function OffersNearMap({ country, offers, seed, expanded, onToggl
     setActiveSku(null);
   }, [country]);
 
-  const cityInfo = CITY_INFO[ACTIVE_CITY_CODE] ?? { name: country, label: '' };
+  // Showcase one city per country: focus on the city with the most offers in
+  // the provided (already country-filtered) set.
+  const focusCityCode = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const offer of offers) {
+      const code = getCityCode(offer.sku);
+      if (code) {
+        counts.set(code, (counts.get(code) ?? 0) + 1);
+      }
+    }
+    let best = '';
+    let bestCount = -1;
+    counts.forEach((count, code) => {
+      if (count > bestCount) {
+        best = code;
+        bestCount = count;
+      }
+    });
+    return best;
+  }, [offers]);
 
-  // Focus on the active city's offers; fall back to all provided offers so the
+  const cityInfo = CITY_INFO[focusCityCode] ?? { name: country, label: '' };
+  const isNyc = focusCityCode === 'NYC';
+
+  // Focus on the showcase city's offers; fall back to all provided offers so the
   // map always has something to show.
   const cityOffers = useMemo(() => {
-    const matches = offers.filter((offer) => getCityCode(offer.sku) === ACTIVE_CITY_CODE);
+    const matches = offers.filter((offer) => getCityCode(offer.sku) === focusCityCode);
     return matches.length > 0 ? matches : offers;
-  }, [offers]);
+  }, [offers, focusCityCode]);
 
   const maxPins = isExpanded ? MAX_PINS_EXPANDED : MAX_PINS;
 
@@ -334,7 +448,7 @@ export default function OffersNearMap({ country, offers, seed, expanded, onToggl
         onClick={handleBackgroundClick}
         aria-hidden="true"
       >
-        <NycMapArt />
+        {isNyc ? <NycMapArt /> : <GenericCityMapArt citySeed={hashSeed(focusCityCode || cityInfo.name)} cityName={cityInfo.name} />}
 
         {/* Offer pins */}
         {pins.map((pin) => {
