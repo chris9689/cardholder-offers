@@ -5,7 +5,7 @@
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { USER, AFFINITY_PRESETS } from '../config';
-import { resetDySession, informAffinityPresetClient, setDySelectedCountry } from '../lib/dyServerApi';
+import { resetDySession, informAffinityPresetClient, setDySelectedCountry, setDyCardTier } from '../lib/dyServerApi';
 
 const CARD_TIER_STORAGE_KEY = 'cardholder.offers.tier';
 const USER_VARIABLES_STORAGE_KEY = 'cardholder.offers.userVariables';
@@ -86,7 +86,10 @@ export function CardProvider({ children }: { children: ReactNode }) {
     }
 
     const storedTier = window.localStorage.getItem(CARD_TIER_STORAGE_KEY);
-    return storedTier && isCardType(storedTier) ? storedTier : USER.defaultCardType;
+    const resolvedTier = storedTier && isCardType(storedTier) ? storedTier : USER.defaultCardType;
+    // Seed the DY layer synchronously so the first API calls carry the tier.
+    setDyCardTier(resolvedTier);
+    return resolvedTier;
   });
   const [selectedCountry, setSelectedCountryState] = useState<string>(() => {
     if (typeof window === 'undefined') {
@@ -178,6 +181,7 @@ export function CardProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    setDyCardTier(cardType);
     window.localStorage.setItem(CARD_TIER_STORAGE_KEY, cardType);
   }, [cardType]);
 

@@ -4,6 +4,7 @@
  */
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { trackProductView } from '../lib/dyServerApi';
 
 export interface SavingsTransaction {
   sku: string;
@@ -47,6 +48,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   };
 
   const activateOffer = (sku: string) => {
+    // Fire a DY product-view only the first time a SKU is activated.
+    if (!activatedOffers.has(sku)) {
+      void trackProductView(sku);
+    }
     setActivatedOffers((prev) => {
       const next = new Set(prev);
       next.add(sku);

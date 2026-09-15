@@ -122,6 +122,14 @@ export function setDySelectedCountry(country: string | null | undefined): void {
   selectedCountry = country && country.trim().length > 0 ? country : COUNTRY_EVERYWHERE;
 }
 
+// The current card tier, synced from CardContext so fire-and-forget calls (e.g.
+// product-view on activation) can build a payload without prop drilling.
+let currentCardTier: CardType = 'Standard';
+
+export function setDyCardTier(cardType: CardType): void {
+  currentCardTier = cardType;
+}
+
 function getCookie(name: string): string | undefined {
   const cookie = document.cookie
     .split('; ')
@@ -261,6 +269,12 @@ export async function trackPageview(pathname: string, cardType: CardType): Promi
   } catch {
     // no-op: pageview can return empty body in some integrations
   }
+}
+
+// Registers a PRODUCT pageview for a SKU (same shape as viewing its PDP). Used
+// to signal a product view to DY when an offer is activated.
+export function trackProductView(sku: string): Promise<void> {
+  return trackPageview(`/offers/${encodeURIComponent(sku)}`, currentCardTier);
 }
 
 export async function chooseHeroBanner(pathname: string, cardType: CardType): Promise<HeroBannerPayload | null> {
