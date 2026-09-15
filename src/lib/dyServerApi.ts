@@ -114,11 +114,12 @@ function clearCachedDyid(): void {
 
 // The currently selected country (e.g. 'Italy'), persisted via CardContext and
 // synced here so it can be attached as a custom attribute to every DY API call.
-// `undefined` means "Everywhere" (no country filter).
-let selectedCountry: string | undefined;
+// Defaults to 'Everywhere' (no country filter) so DY can target that segment.
+const COUNTRY_EVERYWHERE = 'Everywhere';
+let selectedCountry: string = COUNTRY_EVERYWHERE;
 
 export function setDySelectedCountry(country: string | null | undefined): void {
-  selectedCountry = country && country.trim().length > 0 ? country : undefined;
+  selectedCountry = country && country.trim().length > 0 ? country : COUNTRY_EVERYWHERE;
 }
 
 function getCookie(name: string): string | undefined {
@@ -227,7 +228,7 @@ function buildBasePayload(pathname: string, cardType: CardType) {
       },
       pageAttributes: {
         card_tier: cardType,
-        ...(selectedCountry ? { country: selectedCountry } : {}),
+        country: selectedCountry,
       },
     },
   };
@@ -563,7 +564,7 @@ export async function performDySearch(
       },
       pageAttributes: {
         card_tier: cardType,
-        ...(selectedCountry ? { country: selectedCountry } : {}),
+        country: selectedCountry,
       },
     },
     selector: {
