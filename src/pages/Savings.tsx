@@ -40,6 +40,32 @@ function slotToRowOffer(slot: DyRecommendationSlot): RowOffer {
   };
 }
 
+// Demo override: when these brands are all activated, replace the DY savings
+// recommendations with a fixed set of offers.
+const OVERRIDE_TRIGGER_BRANDS = ["Macy's", 'Amtrak', 'Chipotle'];
+const OVERRIDE_RECOMMENDATION_SKUS = ['CO-US-NYC-SHO-0371', 'CO-US-MIA-CUL-0417', 'CO-US-LAX-TRA-0446'];
+
+function feedItemToSlot(product: ProductFeedItem): DyRecommendationSlot {
+  return {
+    sku: product.sku,
+    productData: {
+      name: product.name,
+      brand: product.brand,
+      logo_url: product.logo_url,
+      image_url: product.image_url,
+      categories: [product.categories],
+      url: product.url,
+    },
+  };
+}
+
+function getOverrideRecs(): DyRecommendationSlot[] {
+  return OVERRIDE_RECOMMENDATION_SKUS
+    .map((sku) => getProductBySku(sku))
+    .filter((p): p is ProductFeedItem => Boolean(p))
+    .map(feedItemToSlot);
+}
+
 // Mocked redeemed offers per tier. The sum of `amount` drives the total money
 // saved figure so the math on this page always reconciles.
 const REDEEMED_OFFERS_MOCKS: Record<CardType, RedeemedOffer[]> = {
@@ -128,6 +154,14 @@ export default function Savings() {
     let mounted = true;
     if (hasReadyOffers) {
       setEmptyStateRecs([]);
+      const activatedBrands = new Set(readyOffers.map((offer) => offer.brand));
+      const shouldOverride = OVERRIDE_TRIGGER_BRANDS.every((brand) => activatedBrands.has(brand));
+      if (shouldOverride) {
+        setActivateRecs(getOverrideRecs());
+        return () => {
+          mounted = false;
+        };
+      }
       const activatedSkus = readyOffers.map((offer) => offer.sku);
       void chooseSavingsRecommendations(displayTier, activatedSkus).then((result) => {
         if (mounted) {
