@@ -6,6 +6,7 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { USER, AFFINITY_PRESETS } from '../config';
 import { resetDySession, informAffinityPresetClient, setDySelectedCountry, setDyCardTier } from '../lib/dyServerApi';
+import { clearStoredSession } from './SessionContext';
 
 const CARD_TIER_STORAGE_KEY = 'cardholder.offers.tier';
 const USER_VARIABLES_STORAGE_KEY = 'cardholder.offers.userVariables';
@@ -240,6 +241,10 @@ export function CardProvider({ children }: { children: ReactNode }) {
     try {
       // Reset the DY identity so the new tier starts from a fresh demo user.
       resetDySession();
+
+      // Clear persisted session data (activated/liked offers, savings history)
+      // so the fresh session doesn't carry over the previous tier's state.
+      clearStoredSession();
 
       // Reset the country selection back to the default ("Everywhere") whenever
       // the tier changes, since the available countries differ per tier.
