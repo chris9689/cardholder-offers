@@ -9,7 +9,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { useCard } from '../contexts/CardContext';
 import { useSession } from '../contexts/SessionContext';
-import { choosePdpRecommendations, DyRecommendationSlot } from '../lib/dyServerApi';
+import { choosePdpRecommendations, trackProductView, DyRecommendationSlot } from '../lib/dyServerApi';
 import DyOfferCard from '../components/DyOfferCard';
 import { getAllProducts, getCategoryDescription, getProductBySku, ProductFeedItem } from '../lib/productFeed';
 
@@ -47,6 +47,9 @@ export default function OfferDetail() {
     if (!product?.sku) {
       return;
     }
+
+    // Explicit PRODUCT pageview for the offer detail page.
+    void trackProductView(product.sku);
 
     let isMounted = true;
     const loadRecommendations = async () => {

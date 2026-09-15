@@ -403,7 +403,8 @@ export async function choosePdpRecommendations(sku: string, cardType: CardType):
       groups: ['Productpage'],
     },
     options: {
-      isImplicitPageview: true,
+      // Pageview is tracked explicitly via trackProductView on the PDP.
+      isImplicitPageview: false,
       returnAnalyticsMetadata: false,
       isImplicitImpressionMode: true,
       isImplicitClientData: false,
