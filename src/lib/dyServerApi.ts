@@ -301,9 +301,21 @@ export async function chooseHeroBanner(pathname: string, cardType: CardType): Pr
   return payloadData as HeroBannerPayload;
 }
 
-export async function chooseHomepageGroup(pathname: string, cardType: CardType): Promise<HomepageChoiceResult> {
+export async function chooseHomepageGroup(
+  pathname: string,
+  cardType: CardType,
+  extraPageAttributes?: Record<string, string>,
+): Promise<HomepageChoiceResult> {
+  const base = buildBasePayload(pathname, cardType);
   const payload = {
-    ...buildBasePayload(pathname, cardType),
+    ...base,
+    context: {
+      ...base.context,
+      pageAttributes: {
+        ...base.context.pageAttributes,
+        ...extraPageAttributes,
+      },
+    },
     selector: {
       names: ['Hero Banner Campaign'],
       groups: ['Homepage'],
@@ -419,21 +431,21 @@ export async function choosePdpRecommendations(sku: string, cardType: CardType):
 }
 
 /**
- * Savings-page recommendations. Reuses the PDP recommendation widget/endpoint
- * but tags the request with a custom `page_type: 'savings'` page attribute so
- * the traffic can be differentiated in DY logging/reporting. An optional seed
- * SKU (e.g. the first activated offer) provides product context for the recs.
+ * Savings-page recommendations. Uses the "Savings Recommendation" widget in the
+ * "Savingspage" group with a CART page context whose `data` array carries the
+ * SKUs of the offers the cardholder has activated, so DY can recommend against
+ * that basket. Falls back to the base page id when nothing has been activated.
  */
-export async function chooseSavingsRecommendations(cardType: CardType, seedSku?: string): Promise<PdpChoiceResult> {
+export async function chooseSavingsRecommendations(cardType: CardType, activatedSkus: string[] = []): Promise<PdpChoiceResult> {
   const base = buildBasePayload('/savings', cardType);
   const payload = {
     ...base,
     context: {
       ...base.context,
       page: {
-        type: 'PRODUCT',
+        type: 'CART',
         location: window.location.href,
-        data: seedSku ? [seedSku] : base.context.page.data,
+        data: activatedSkus.length > 0 ? activatedSkus : base.context.page.data,
       },
       pageAttributes: {
         ...base.context.pageAttributes,
@@ -441,8 +453,8 @@ export async function chooseSavingsRecommendations(cardType: CardType, seedSku?:
       },
     },
     selector: {
-      names: ['PDP Recommendation'],
-      groups: ['Productpage'],
+      names: ['Savings Recommendation'],
+      groups: ['Savingspage'],
     },
     options: {
       isImplicitPageview: true,

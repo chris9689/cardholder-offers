@@ -5,7 +5,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ChevronLeft, TrendingUp, ArrowUpRight, Sparkles, ChevronRight } from 'lucide-react';
+import { ChevronLeft, TrendingUp, ArrowUpRight, Sparkles, ChevronRight, Check, Plus } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useSession } from '../contexts/SessionContext';
 import { useCard, CardType } from '../contexts/CardContext';
@@ -75,6 +75,28 @@ function initials(text: string): string {
   return text.slice(0, 2).toUpperCase();
 }
 
+function hashSeed(value: string): number {
+  let hash = 0;
+  for (let i = 0; i < value.length; i += 1) {
+    hash = (hash << 5) - hash + value.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash);
+}
+
+// Derive a plausible cashback amount so activating a recommendation posts to
+// Savings, mirroring the map quick-view activation.
+function deriveSaving(offer: RowOffer): number {
+  const product = getProductBySku(offer.sku);
+  const pctMatch = offer.name.match(/(\d+)\s*%/);
+  const minSpend = product ? Number.parseFloat(product.min_spend) || 0 : 0;
+  if (pctMatch && minSpend > 0) {
+    const pct = Number.parseInt(pctMatch[1], 10);
+    return Math.round(pct * minSpend) / 100;
+  }
+  return Math.round((5 + (hashSeed(offer.sku) % 20)) * 100) / 100;
+}
+
 export default function Savings() {
   const navigate = useNavigate();
   const { activatedOffers } = useSession();
@@ -105,8 +127,8 @@ export default function Savings() {
       return;
     }
     let mounted = true;
-    const seedSku = readyOffers[0]?.sku;
-    void chooseSavingsRecommendations(displayTier, seedSku).then((result) => {
+    const activatedSkus = readyOffers.map((offer) => offer.sku);
+    void chooseSavingsRecommendations(displayTier, activatedSkus).then((result) => {
       if (mounted) {
         setActivateRecs(result.recommendations);
       }
@@ -376,6 +398,21 @@ function ReadyOfferRow({
   isRecommendation?: boolean;
 }) {
   const offerPath = `/offers/${encodeURIComponent(offer.sku)}`;
+  const { activatedOffers, activateOffer, recordSaving } = useSession();
+  const isActivated = activatedOffers.has(offer.sku);
+
+  const handleActivate = () => {
+    if (activatedOffers.has(offer.sku)) {
+      return;
+    }
+    activateOffer(offer.sku);
+    recordSaving({
+      sku: offer.sku,
+      merchant: offer.brand,
+      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      amount: deriveSaving(offer),
+    });
+  };
 
   return (
     <motion.div
@@ -383,11 +420,8 @@ function ReadyOfferRow({
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.04 }}
     >
-      <Link
-        to={offerPath}
-        className="p-6 md:p-8 flex items-center justify-between gap-6 hover:bg-surface-container-low transition-colors group"
-      >
-        <div className="flex items-center gap-5 min-w-0">
+      <div className="p-6 md:p-8 flex items-center justify-between gap-6 hover:bg-surface-container-low transition-colors group">
+        <Link to={offerPath} className="flex items-center gap-5 min-w-0 flex-1">
           <div className="w-14 h-14 rounded-2xl overflow-hidden bg-white border border-outline-variant/10 flex items-center justify-center shrink-0">
             {offer.logo_url ? (
               <img src={offer.logo_url} alt={offer.brand} className="w-full h-full object-contain" />
@@ -403,20 +437,39 @@ function ReadyOfferRow({
               {offer.brand}
             </p>
           </div>
-        </div>
+        </Link>
         <div className="flex items-center gap-4 shrink-0">
           {isRecommendation ? (
-            <span className="hidden sm:inline text-[10px] font-black text-secondary uppercase tracking-widest">
-              Activate
-            </span>
+            <button
+              type="button"
+              onClick={handleActivate}
+              disabled={isActivated}
+              className={`inline-flex items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 font-sans text-[11px] font-black uppercase tracking-widest transition-all ${
+                isActivated
+                  ? 'bg-green-600 text-white cursor-default'
+                  : 'bg-primary text-white hover:bg-primary/90 active:scale-95'
+              }`}
+            >
+              {isActivated ? (
+                <>
+                  <Check size={14} /> Activated
+                </>
+              ) : (
+                <>
+                  <Plus size={14} /> Activate
+                </>
+              )}
+            </button>
           ) : (
-            <span className="hidden sm:inline text-[10px] font-black text-green-600 uppercase tracking-widest">
-              Ready
-            </span>
+            <>
+              <span className="hidden sm:inline text-[10px] font-black text-green-600 uppercase tracking-widest">
+                Ready
+              </span>
+              <ChevronRight size={18} className="text-outline-variant group-hover:text-primary transition-colors" />
+            </>
           )}
-          <ChevronRight size={18} className="text-outline-variant group-hover:text-primary transition-colors" />
         </div>
-      </Link>
+      </div>
     </motion.div>
   );
 }

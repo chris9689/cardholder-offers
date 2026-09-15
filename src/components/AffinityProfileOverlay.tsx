@@ -5,14 +5,14 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Fingerprint, BarChart3, Sparkles, Layers } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { X, Fingerprint, BarChart3, Sparkles, Layers, ChevronRight } from 'lucide-react';
 import { CardType } from '../contexts/CardContext';
 import {
   fetchUserAffinityAttributes,
   chooseHomepageGroup,
   DyRecommendationSlot,
 } from '../lib/dyServerApi';
-import DyOfferCard from './DyOfferCard';
 
 interface AffinityProfileOverlayProps {
   isOpen: boolean;
@@ -75,7 +75,7 @@ export default function AffinityProfileOverlay({ isOpen, onClose, cardType }: Af
       setIsLoading(false);
     });
 
-    void chooseHomepageGroup('/', cardType).then((result) => {
+    void chooseHomepageGroup('/', cardType, { page_type: 'affinity' }).then((result) => {
       if (mounted) {
         setRecs(result.recommendations ?? []);
       }
@@ -191,19 +191,21 @@ export default function AffinityProfileOverlay({ isOpen, onClose, cardType }: Af
               ) : (
                 <>
                   {/* Legend */}
-                  <div className="flex flex-wrap gap-4 mb-8">
-                    {orderedAttributes.map(([attr], i) => (
-                      <div key={attr} className="flex items-center gap-2">
-                        <span
-                          className="w-3 h-3 rounded-md"
-                          style={{ backgroundColor: attrMeta(attr, i).color }}
-                        />
-                        <span className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest">
-                          {attrMeta(attr, i).label}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
+                  {activeTab !== 'recs' && (
+                    <div className="flex flex-wrap gap-4 mb-8">
+                      {orderedAttributes.map(([attr], i) => (
+                        <div key={attr} className="flex items-center gap-2">
+                          <span
+                            className="w-3 h-3 rounded-md"
+                            style={{ backgroundColor: attrMeta(attr, i).color }}
+                          />
+                          <span className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest">
+                            {attrMeta(attr, i).label}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
 
                   {activeTab === 'top' && (
                     <div className="flex flex-wrap items-center justify-center gap-4 py-4">
@@ -274,12 +276,12 @@ export default function AffinityProfileOverlay({ isOpen, onClose, cardType }: Af
                   )}
 
                   {activeTab === 'recs' && (
-                    <div className="space-y-4">
+                    <div className="divide-y divide-outline-variant/10">
                       {recs.length === 0 ? (
                         <EmptyState message="No personalized recommendations available for this session yet." />
                       ) : (
                         recs.slice(0, 6).map((slot) => (
-                          <DyOfferCard key={slot.slotId || slot.sku} slot={slot} variant="list" />
+                          <AffinityRecRow key={slot.slotId || slot.sku} slot={slot} />
                         ))
                       )}
                     </div>
@@ -309,5 +311,38 @@ function EmptyState({ message }: { message?: string }) {
         {message ?? 'Your affinity profile is currently empty. Browse offers to start building your affinity scores.'}
       </p>
     </div>
+  );
+}
+
+function AffinityRecRow({ slot }: { slot: DyRecommendationSlot }) {
+  const { productData, sku } = slot;
+  const brand = productData.brand ?? sku;
+
+  return (
+    <Link
+      to={`/offers/${encodeURIComponent(sku)}`}
+      className="py-4 flex items-center justify-between gap-4 hover:bg-surface-container-low transition-colors group"
+    >
+      <div className="flex items-center gap-4 min-w-0">
+        <div className="w-16 h-16 rounded-2xl overflow-hidden bg-white border border-outline-variant/10 flex items-center justify-center shrink-0">
+          {productData.image_url ? (
+            <img src={productData.image_url} alt={brand} className="w-full h-full object-cover" />
+          ) : productData.logo_url ? (
+            <img src={productData.logo_url} alt={brand} className="w-full h-full object-contain p-1" />
+          ) : (
+            <span className="font-black text-primary text-sm">{brand.slice(0, 2).toUpperCase()}</span>
+          )}
+        </div>
+        <div className="min-w-0">
+          <h3 className="font-sans font-black text-primary text-sm md:text-base leading-tight line-clamp-2">
+            {productData.name}
+          </h3>
+          <p className="font-sans text-[11px] font-bold text-on-surface-variant/50 uppercase tracking-[0.15em] mt-1 truncate">
+            {brand}
+          </p>
+        </div>
+      </div>
+      <ChevronRight size={18} className="text-outline-variant group-hover:text-primary transition-colors shrink-0" />
+    </Link>
   );
 }
