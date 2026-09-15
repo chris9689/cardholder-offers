@@ -76,7 +76,7 @@ export default function Hero({ banner: bannerProp, isLoading = false }: HeroProp
 
   return (
     <div className="w-full max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop mt-8">
-      <section className="relative w-full h-[460px] md:h-[540px] rounded-4xl md:rounded-[48px] overflow-hidden group shadow-xl border border-outline-variant/10 bg-black">
+      <section className="relative w-full h-[460px] md:h-[540px] rounded-4xl md:rounded-[48px] overflow-hidden group shadow-xl">
         <div className="absolute inset-0">
           <motion.div
             initial={{ opacity: 0, scale: 1.04 }}
