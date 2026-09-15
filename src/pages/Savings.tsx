@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useSession } from '../contexts/SessionContext';
 import { useCard, CardType } from '../contexts/CardContext';
 import { getAllProducts, getProductBySku, ProductFeedItem } from '../lib/productFeed';
-import { chooseSavingsRecommendations, DyRecommendationSlot } from '../lib/dyServerApi';
+import { chooseSavingsRecommendations, chooseHomepageGroup, DyRecommendationSlot } from '../lib/dyServerApi';
 
 interface RedeemedOffer {
   sku: string;
@@ -120,31 +120,44 @@ export default function Savings() {
 
   // When the user already has activated offers, surface additional offers to
   // activate via the same DY recommendation widget used on the offer detail page.
+  // When nothing is activated yet, fall back to the personalized homepage recs
+  // choose call so the empty state reflects the user's session.
   const [activateRecs, setActivateRecs] = useState<DyRecommendationSlot[]>([]);
+  const [emptyStateRecs, setEmptyStateRecs] = useState<DyRecommendationSlot[]>([]);
   useEffect(() => {
-    if (!hasReadyOffers) {
-      setActivateRecs([]);
-      return;
-    }
     let mounted = true;
-    const activatedSkus = readyOffers.map((offer) => offer.sku);
-    void chooseSavingsRecommendations(displayTier, activatedSkus).then((result) => {
-      if (mounted) {
-        setActivateRecs(result.recommendations);
-      }
-    });
+    if (hasReadyOffers) {
+      setEmptyStateRecs([]);
+      const activatedSkus = readyOffers.map((offer) => offer.sku);
+      void chooseSavingsRecommendations(displayTier, activatedSkus).then((result) => {
+        if (mounted) {
+          setActivateRecs(result.recommendations);
+        }
+      });
+    } else {
+      setActivateRecs([]);
+      void chooseHomepageGroup('/', displayTier).then((result) => {
+        if (mounted) {
+          setEmptyStateRecs(result.recommendations ?? []);
+        }
+      });
+    }
     return () => {
       mounted = false;
     };
   }, [hasReadyOffers, readyOffers, displayTier]);
 
-  // Recommendations shown when nothing has been activated yet.
+  // Product-feed fallback used only when the homepage choose call returns nothing.
   const recommendations = useMemo<ProductFeedItem[]>(() => {
     const all = getAllProducts();
     const tierMatched = all.filter((p) => p.card_tier === displayTier && p.in_stock);
     const pool = tierMatched.length > 0 ? tierMatched : all;
     return pool.slice(0, 5);
   }, [displayTier]);
+
+  const emptyStateOffers = useMemo<RowOffer[]>(() => {
+    return emptyStateRecs.length > 0 ? emptyStateRecs.map(slotToRowOffer) : recommendations;
+  }, [emptyStateRecs, recommendations]);
 
   const redeemedCount = redeemedOffers.length;
   const readyCount = readyOffers.length;
@@ -302,7 +315,7 @@ export default function Savings() {
                       </span>
                     </div>
                     <div className="divide-y divide-outline-variant/10">
-                      {recommendations.map((offer, index) => (
+                      {emptyStateOffers.map((offer, index) => (
                         <ReadyOfferRow key={`${offer.sku}-${index}`} offer={offer} index={index} isRecommendation />
                       ))}
                     </div>

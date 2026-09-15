@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Heart, ExternalLink } from 'lucide-react';
+import { Heart, Plus, Check } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { DyRecommendationSlot } from '../lib/dyServerApi';
+import { getProductBySku } from '../lib/productFeed';
 import { useSession } from '../contexts/SessionContext';
 
 interface DyOfferCardProps {
@@ -10,12 +11,34 @@ interface DyOfferCardProps {
   variant?: 'grid' | 'list';
 }
 
+function hashSeed(value: string): number {
+  let hash = 0;
+  for (let i = 0; i < value.length; i += 1) {
+    hash = (hash << 5) - hash + value.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash);
+}
+
+// Plausible cashback so activating a recommendation posts to Savings, matching
+// the map pin / savings-page activation.
+function deriveSaving(sku: string, name: string): number {
+  const product = getProductBySku(sku);
+  const pctMatch = name.match(/(\d+)\s*%/);
+  const minSpend = product ? Number.parseFloat(product.min_spend) || 0 : 0;
+  if (pctMatch && minSpend > 0) {
+    const pct = Number.parseInt(pctMatch[1], 10);
+    return Math.round(pct * minSpend) / 100;
+  }
+  return Math.round((5 + (hashSeed(sku) % 20)) * 100) / 100;
+}
+
 const DyOfferCard: React.FC<DyOfferCardProps> = ({ slot, variant = 'grid' }) => {
   const { productData, sku } = slot;
   const category = productData.categories?.[0] ?? '';
   const brand = productData.brand ?? sku;
   const offerPath = `/offers/${encodeURIComponent(sku)}`;
-  const { likedOffers, toggleLike, activatedOffers } = useSession();
+  const { likedOffers, toggleLike, activatedOffers, activateOffer, recordSaving } = useSession();
   const isLiked = likedOffers.has(sku);
   const isActivated = activatedOffers.has(sku);
 
@@ -23,6 +46,21 @@ const DyOfferCard: React.FC<DyOfferCardProps> = ({ slot, variant = 'grid' }) => 
     e.preventDefault();
     e.stopPropagation();
     toggleLike(sku);
+  };
+
+  const handleActivate = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (activatedOffers.has(sku)) {
+      return;
+    }
+    activateOffer(sku);
+    recordSaving({
+      sku,
+      merchant: brand,
+      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      amount: deriveSaving(sku, productData.name),
+    });
   };
 
   if (variant === 'list') {
@@ -92,26 +130,33 @@ const DyOfferCard: React.FC<DyOfferCardProps> = ({ slot, variant = 'grid' }) => 
             {productData.name}
           </h3>
 
-          <div className="mt-auto pt-4 flex items-center justify-between border-t border-outline-variant/10">
+          <div className="mt-auto pt-4 flex items-center justify-between gap-3 border-t border-outline-variant/10">
             <Link
               to={offerPath}
-              className={`font-sans text-sm font-bold ${
+              className="font-sans text-sm font-bold text-secondary hover:underline underline-offset-4 decoration-2"
+            >
+              See Details
+            </Link>
+            <button
+              type="button"
+              onClick={handleActivate}
+              disabled={isActivated}
+              className={`inline-flex items-center justify-center gap-1.5 rounded-xl px-4 py-2 font-sans text-[11px] font-black uppercase tracking-widest transition-all ${
                 isActivated
-                  ? 'text-green-600 flex items-center gap-1'
-                  : 'text-secondary hover:underline underline-offset-4 decoration-2'
+                  ? 'bg-green-600 text-white cursor-default'
+                  : 'bg-primary text-white hover:bg-primary/90 active:scale-95'
               }`}
             >
               {isActivated ? (
                 <>
-                  <span>✓</span> Activated
+                  <Check size={14} /> Activated
                 </>
               ) : (
-                'Activate Offer'
+                <>
+                  <Plus size={14} /> Activate offer
+                </>
               )}
-            </Link>
-            <Link to={offerPath} className="text-on-surface-variant hover:text-primary transition-colors">
-              <ExternalLink size={18} />
-            </Link>
+            </button>
           </div>
         </div>
       </motion.div>
@@ -184,26 +229,33 @@ const DyOfferCard: React.FC<DyOfferCardProps> = ({ slot, variant = 'grid' }) => 
           {productData.name}
         </h3>
 
-        <div className="mt-4 flex items-center justify-between border-t border-outline-variant/10 pt-4">
+        <div className="mt-4 flex items-center justify-between gap-3 border-t border-outline-variant/10 pt-4">
           <Link
             to={offerPath}
-            className={`font-sans text-sm font-bold ${
+            className="font-sans text-sm font-bold text-secondary hover:underline underline-offset-4 decoration-2"
+          >
+            See Details
+          </Link>
+          <button
+            type="button"
+            onClick={handleActivate}
+            disabled={isActivated}
+            className={`inline-flex items-center justify-center gap-1.5 rounded-xl px-4 py-2 font-sans text-[11px] font-black uppercase tracking-widest transition-all ${
               isActivated
-                ? 'text-green-600 flex items-center gap-1'
-                : 'text-secondary hover:underline underline-offset-4 decoration-2'
+                ? 'bg-green-600 text-white cursor-default'
+                : 'bg-primary text-white hover:bg-primary/90 active:scale-95'
             }`}
           >
             {isActivated ? (
               <>
-                <span>✓</span> Activated
+                <Check size={14} /> Activated
               </>
             ) : (
-              'Activate Offer'
+              <>
+                <Plus size={14} /> Activate offer
+              </>
             )}
-          </Link>
-          <Link to={offerPath} className="text-on-surface-variant hover:text-primary transition-colors">
-            <ExternalLink size={18} />
-          </Link>
+          </button>
         </div>
       </div>
     </motion.div>
