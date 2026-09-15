@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Check, Maximize2, Minimize2, Navigation, Plus, X } from 'lucide-react';
+import { ArrowRight, Check, Maximize2, Minimize2, Navigation, Plus, Search, MapPin, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useSession } from '../contexts/SessionContext';
 import type { ProductFeedItem } from '../lib/productFeed';
@@ -48,6 +48,22 @@ const CITY_INFO: Record<string, { name: string; label: string }> = {
 // Cap the number of offer pins rendered so the map stays readable.
 const MAX_PINS = 14;
 const MAX_PINS_EXPANDED = 26;
+
+// Default framing for the map (viewBox: x, y, w, h). The expanded view is
+// zoomed in from the full scene so there is room to pan a searched location in.
+const EXPANDED_VIEWBOX: [number, number, number, number] = [20, 10, 100, 80];
+const COLLAPSED_VIEWBOX: [number, number, number, number] = [48, 12, 44, 74];
+
+// Mocked address search (New York only): selecting the suggestion drops a
+// destination marker and clusters a few existing NYC offers around it.
+const SEARCH_ADDRESS = '4658 Camden Street, Sparks, NV, 89431';
+const SEARCH_POINT = { x: 22, y: 46 };
+const SEARCH_PIN_OFFSETS: Array<[number, number]> = [
+  [-6, 6],
+  [6, 5],
+  [-2, 11],
+  [7, 12],
+];
 
 function hashSeed(value: string): number {
   let hash = 0;
@@ -311,6 +327,8 @@ export default function OffersNearMap({ country, offers, seed, expanded, onToggl
   const [activeSku, setActiveSku] = useState<string | null>(null);
   const [hoveredSku, setHoveredSku] = useState<string | null>(null);
   const [internalExpanded, setInternalExpanded] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchedLocation, setSearchedLocation] = useState<string | null>(null);
   const { activatedOffers, activateOffer, recordSaving } = useSession();
 
   const isExpanded = expanded ?? internalExpanded;
@@ -318,6 +336,8 @@ export default function OffersNearMap({ country, offers, seed, expanded, onToggl
 
   useEffect(() => {
     setActiveSku(null);
+    setSearchQuery('');
+    setSearchedLocation(null);
   }, [country]);
 
   // Showcase one city per country: focus on the city with the most offers in
@@ -343,6 +363,44 @@ export default function OffersNearMap({ country, offers, seed, expanded, onToggl
 
   const cityInfo = CITY_INFO[focusCityCode] ?? { name: country, label: '' };
   const isNyc = focusCityCode === 'NYC';
+
+  // Animated viewBox: zoom into the searched location (centering it) when set,
+  // otherwise sit at the default expanded/collapsed framing.
+  const [viewBox, setViewBox] = useState<[number, number, number, number]>(() =>
+    (expanded ?? internalExpanded) ? EXPANDED_VIEWBOX : COLLAPSED_VIEWBOX,
+  );
+  const viewBoxRef = useRef(viewBox);
+  useEffect(() => {
+    const target: [number, number, number, number] = !isExpanded
+      ? COLLAPSED_VIEWBOX
+      : searchedLocation && isNyc
+        ? [
+            SEARCH_POINT.x - EXPANDED_VIEWBOX[2] / 2,
+            SEARCH_POINT.y - EXPANDED_VIEWBOX[3] / 2,
+            EXPANDED_VIEWBOX[2],
+            EXPANDED_VIEWBOX[3],
+          ]
+        : EXPANDED_VIEWBOX;
+    const from = viewBoxRef.current;
+    const start = performance.now();
+    const duration = 600;
+    let raf = 0;
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / duration);
+      const e = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+      const next: [number, number, number, number] = [
+        from[0] + (target[0] - from[0]) * e,
+        from[1] + (target[1] - from[1]) * e,
+        from[2] + (target[2] - from[2]) * e,
+        from[3] + (target[3] - from[3]) * e,
+      ];
+      viewBoxRef.current = next;
+      setViewBox(next);
+      if (t < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [isExpanded, searchedLocation, isNyc]);
 
   // Focus on the showcase city's offers; fall back to all provided offers so the
   // map always has something to show.
@@ -396,15 +454,41 @@ export default function OffersNearMap({ country, offers, seed, expanded, onToggl
     });
   }, [cityOffers, seed, maxPins]);
 
+  // Offers pinned around the searched (mocked) location. Reuses existing NYC
+  // offers as if they were also available there.
+  const searchedPins = useMemo<OfferPin[]>(() => {
+    if (!searchedLocation || !isNyc) {
+      return [];
+    }
+    return cityOffers.slice(0, SEARCH_PIN_OFFSETS.length).map((offer, i) => ({
+      offer,
+      x: SEARCH_POINT.x + SEARCH_PIN_OFFSETS[i][0],
+      y: SEARCH_POINT.y + SEARCH_PIN_OFFSETS[i][1],
+    }));
+  }, [searchedLocation, isNyc, cityOffers]);
+
+  // Original pins stay visible; searched-location pins are added on top when expanded.
+  const visiblePins = useMemo(
+    () => (isExpanded ? [...pins, ...searchedPins] : pins),
+    [isExpanded, pins, searchedPins],
+  );
+
+  const showSuggestion =
+    isNyc &&
+    isExpanded &&
+    !searchedLocation &&
+    searchQuery.trim().length > 0 &&
+    SEARCH_ADDRESS.toLowerCase().includes(searchQuery.trim().toLowerCase());
+
   const activeOffer = useMemo(
-    () => pins.find((pin) => pin.offer.sku === activeSku)?.offer ?? null,
-    [pins, activeSku],
+    () => visiblePins.find((pin) => pin.offer.sku === activeSku)?.offer ?? null,
+    [visiblePins, activeSku],
   );
 
   const labelPin = useMemo(() => {
     const sku = hoveredSku ?? activeSku;
-    return sku ? pins.find((pin) => pin.offer.sku === sku) ?? null : null;
-  }, [pins, hoveredSku, activeSku]);
+    return sku ? visiblePins.find((pin) => pin.offer.sku === sku) ?? null : null;
+  }, [visiblePins, hoveredSku, activeSku]);
 
   if (cityOffers.length === 0) {
     return null;
@@ -443,7 +527,7 @@ export default function OffersNearMap({ country, offers, seed, expanded, onToggl
           offer pins in the outer boroughs become visible. */}
       <svg
         className={`absolute inset-0 w-full h-full ${isExpanded ? 'cursor-default' : 'cursor-zoom-in'}`}
-        viewBox={isExpanded ? '0 8 140 84' : '48 12 44 74'}
+        viewBox={`${viewBox[0]} ${viewBox[1]} ${viewBox[2]} ${viewBox[3]}`}
         preserveAspectRatio="xMidYMid slice"
         onClick={handleBackgroundClick}
         aria-hidden="true"
@@ -451,14 +535,14 @@ export default function OffersNearMap({ country, offers, seed, expanded, onToggl
         {isNyc ? <NycMapArt /> : <GenericCityMapArt citySeed={hashSeed(focusCityCode || cityInfo.name)} cityName={cityInfo.name} />}
 
         {/* Offer pins */}
-        {pins.map((pin) => {
+        {visiblePins.map((pin, pinIndex) => {
           const isActive = pin.offer.sku === activeSku;
           const isDone = activatedOffers.has(pin.offer.sku);
           const s = isActive ? 0.28 : 0.22;
           const color = isDone ? '#16a34a' : 'var(--color-secondary, #cf4500)';
           return (
             <g
-              key={pin.offer.sku}
+              key={`${pin.offer.sku}-${pinIndex}`}
               className="cursor-pointer"
               onClick={(e) => {
                 e.stopPropagation();
@@ -480,6 +564,36 @@ export default function OffersNearMap({ country, offers, seed, expanded, onToggl
             </g>
           );
         })}
+
+        {/* Searched-location destination marker */}
+        {searchedLocation && isExpanded && isNyc && (
+          <g style={{ pointerEvents: 'none' }}>
+            <circle cx={SEARCH_POINT.x} cy={SEARCH_POINT.y} r={3} fill="none" stroke="#1f2b4d" strokeWidth={0.6} opacity={0.5} />
+            <g transform={`translate(${SEARCH_POINT.x} ${SEARCH_POINT.y}) scale(0.3) translate(-12 -23)`}>
+              <path
+                d="M12 23s7-8.4 7-14A7 7 0 0 0 5 9c0 5.6 7 14 7 14z"
+                fill="#1f2b4d"
+                stroke="#ffffff"
+                strokeWidth={1.6}
+              />
+              <circle cx={12} cy={9} r={2.6} fill="#ffffff" />
+            </g>
+            <text
+              x={SEARCH_POINT.x}
+              y={SEARCH_POINT.y - 8}
+              textAnchor="middle"
+              fontSize={2.4}
+              fontWeight={800}
+              fill="#1f2b4d"
+              stroke="#ffffff"
+              strokeWidth={0.9}
+              paintOrder="stroke"
+              style={{ textTransform: 'uppercase', letterSpacing: '0.04em' }}
+            >
+              4658 Camden St
+            </text>
+          </g>
+        )}
 
         {/* Hover / active pin label */}
         {labelPin && (
@@ -511,6 +625,54 @@ export default function OffersNearMap({ country, offers, seed, expanded, onToggl
           {cityInfo.label ? ` · ${cityInfo.label}` : ''}
         </p>
       </div>
+
+      {/* Address search (New York only, when expanded) */}
+      {isExpanded && isNyc && (
+        <div className="absolute top-28 md:top-32 right-7 md:right-8 z-30 w-[min(22rem,calc(100%-4rem))]">
+          <div className="relative">
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                if (searchedLocation) {
+                  setSearchedLocation(null);
+                }
+              }}
+              placeholder="Search an address…"
+              className="w-full rounded-xl bg-white shadow-md border border-outline-variant/20 pl-9 pr-9 py-2.5 font-sans text-sm text-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
+            {(searchQuery || searchedLocation) && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery('');
+                  setSearchedLocation(null);
+                }}
+                aria-label="Clear search"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary transition-colors"
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
+          {showSuggestion && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearchedLocation(SEARCH_ADDRESS);
+                setSearchQuery(SEARCH_ADDRESS);
+                setActiveSku(null);
+              }}
+              className="mt-1.5 w-full text-left rounded-xl bg-white shadow-lg border border-outline-variant/20 px-3 py-2.5 hover:bg-surface-container transition-colors flex items-center gap-2"
+            >
+              <MapPin size={14} className="text-secondary shrink-0" />
+              <span className="font-sans text-sm text-primary">{SEARCH_ADDRESS}</span>
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Expand / collapse control */}
       <button
