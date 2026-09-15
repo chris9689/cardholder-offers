@@ -42,7 +42,7 @@ function slotToRowOffer(slot: DyRecommendationSlot): RowOffer {
 
 // Demo override: when these brands are all activated, replace the DY savings
 // recommendations with a fixed set of offers.
-const OVERRIDE_TRIGGER_BRANDS = ["Macy's", 'Amtrak', 'Chipotle'];
+const OVERRIDE_TRIGGER_BRANDS = ["Macy's", 'Amtrak', 'The Cheesecake Factory'];
 const OVERRIDE_RECOMMENDATION_SKUS = ['CO-US-NYC-SHO-0371', 'CO-US-MIA-CUL-0417', 'CO-US-LAX-TRA-0446'];
 
 function feedItemToSlot(product: ProductFeedItem): DyRecommendationSlot {
